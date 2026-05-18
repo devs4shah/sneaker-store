@@ -7,6 +7,8 @@ C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\jav
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\config\security\JwtProperties.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\config\security\JwtService.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\config\SecurityConfig.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\config\storage\ImageStorageProperties.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\config\WebMvcConfig.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\admin\controller\AdminController.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\auth\controller\AuthController.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\auth\dto\AuthResponse.java
@@ -49,6 +51,7 @@ C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\jav
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\CategoryResponse.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\CreateCategoryRequest.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\CreateSneakerRequest.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\ImageUploadResponse.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerImageResponse.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerResponse.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\dto\UpdateSneakerRequest.java
@@ -58,10 +61,13 @@ C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\jav
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\entity\SneakerImage.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\mapper\SneakerMapper.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\repository\CategoryRepository.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\repository\SneakerImageRepository.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\repository\SneakerRepository.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\repository\SneakerSpecification.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\service\CategoryService.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\service\SneakerImageService.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\service\SneakerService.java
+C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\sneakers\storage\LocalImageStorageService.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\users\controller\UserController.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\users\dto\UpdateProfileRequest.java
 C:\Users\Parth\Desktop\StartupProj\ProSneaker\sneaker-store\backend\src\main\java\com\prosneaker\sneakerstore\modules\users\dto\UserResponse.java

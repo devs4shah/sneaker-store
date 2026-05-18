@@ -3,8 +3,10 @@ package com.prosneaker.sneakerstore.modules.sneakers.controller;
 import com.prosneaker.sneakerstore.modules.common.dto.ApiResponse;
 import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.CreateSneakerRequest;
+import com.prosneaker.sneakerstore.modules.sneakers.dto.ImageUploadResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.SneakerResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.UpdateSneakerRequest;
+import com.prosneaker.sneakerstore.modules.sneakers.service.SneakerImageService;
 import com.prosneaker.sneakerstore.modules.sneakers.service.SneakerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -32,6 +35,7 @@ import java.util.UUID;
 public class SneakerController {
 
     private final SneakerService sneakerService;
+    private final SneakerImageService sneakerImageService;
 
     @GetMapping
     public ApiResponse<PageResponse<SneakerResponse>> getAll(
@@ -67,5 +71,20 @@ public class SneakerController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         sneakerService.delete(id);
+    }
+
+    @PostMapping("/{sneakerId}/images")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<ImageUploadResponse> uploadImages(
+            @PathVariable UUID sneakerId,
+            @RequestParam("files") MultipartFile[] files) {
+        return ApiResponse.success("Images uploaded", sneakerImageService.uploadImages(sneakerId, files));
+    }
+
+    @DeleteMapping("/{sneakerId}/images/{imageId}")
+    public ApiResponse<SneakerResponse> deleteImage(
+            @PathVariable UUID sneakerId,
+            @PathVariable UUID imageId) {
+        return ApiResponse.success("Image deleted", sneakerImageService.deleteImage(sneakerId, imageId));
     }
 }

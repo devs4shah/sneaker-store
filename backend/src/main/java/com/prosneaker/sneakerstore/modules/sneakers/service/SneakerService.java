@@ -13,6 +13,7 @@ import com.prosneaker.sneakerstore.modules.sneakers.entity.SneakerImage;
 import com.prosneaker.sneakerstore.modules.sneakers.mapper.SneakerMapper;
 import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerSpecification;
+import com.prosneaker.sneakerstore.modules.sneakers.storage.LocalImageStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ public class SneakerService {
     private final SneakerRepository sneakerRepository;
     private final CategoryService categoryService;
     private final SneakerMapper sneakerMapper;
+    private final LocalImageStorageService localImageStorageService;
 
     @Transactional(readOnly = true)
     public PageResponse<SneakerResponse> search(
@@ -122,8 +124,10 @@ public class SneakerService {
 
     @Transactional
     public void delete(UUID id) {
-        Sneaker sneaker = findSneaker(id);
+        Sneaker sneaker = findSneakerWithDetails(id);
+        sneaker.getImages().forEach(image -> localImageStorageService.deleteByPublicPath(image.getImageUrl()));
         sneakerRepository.delete(sneaker);
+        localImageStorageService.deleteSneakerDirectory(id);
     }
 
     @Transactional(readOnly = true)

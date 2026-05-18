@@ -11,6 +11,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +63,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.UNAUTHORIZED.getStatus())
                 .body(ApiResponse.error("Authentication failed"));
+    }
+
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(Exception ex) {
+        String message = ex instanceof NoResourceFoundException nrf
+                ? "Resource not found: " + nrf.getResourcePath()
+                : "Endpoint not found";
+        return ResponseEntity
+                .status(ErrorCode.NOT_FOUND.getStatus())
+                .body(ApiResponse.error(message));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        return ResponseEntity
+                .status(ErrorCode.BAD_REQUEST.getStatus())
+                .body(ApiResponse.error("Uploaded file exceeds maximum allowed size"));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
