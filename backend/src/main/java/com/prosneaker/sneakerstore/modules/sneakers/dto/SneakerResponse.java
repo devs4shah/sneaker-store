@@ -1,5 +1,6 @@
 package com.prosneaker.sneakerstore.modules.sneakers.dto;
 
+import com.prosneaker.sneakerstore.modules.sneakers.entity.Gender;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,16 +13,17 @@ import java.util.UUID;
 @Builder
 public class SneakerResponse {
 
-    private final UUID id;
-    private final String brand;
-    private final String name;
-    private final String description;
-    private final BigDecimal price;
-    private final String category;
-    private final String color;
-    private final int stock;
-    private final String imageUrl;
-    private final boolean active;
-    private final List<SneakerSizeResponse> sizes;
-    private final Instant createdAt;
+    private UUID id;
+    private String name;
+    private String brand;
+    private String description;
+    private BigDecimal price;
+    private int stockQuantity;
+    private Gender gender;
+    private String color;
+    private double size;
+    private CategoryResponse category;
+    private List<SneakerImageResponse> images;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

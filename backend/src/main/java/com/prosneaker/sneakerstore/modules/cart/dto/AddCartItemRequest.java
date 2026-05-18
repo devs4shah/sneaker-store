@@ -14,9 +14,6 @@ public class AddCartItemRequest {
     @NotNull(message = "Sneaker ID is required")
     private UUID sneakerId;
 
-    @NotNull(message = "Size is required")
-    private Double sizeValue;
-
     @NotNull(message = "Quantity is required")
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;

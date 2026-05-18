@@ -1,8 +1,15 @@
 package com.prosneaker.sneakerstore.modules.sneakers.entity;
 
 import com.prosneaker.sneakerstore.modules.common.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +18,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "sneakers")
@@ -21,31 +30,37 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Sneaker extends BaseEntity {
 
-    @Column(nullable = false)
-    private String brand;
-
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String name;
+
+    @Column(nullable = false, length = 100)
+    private String brand;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     @Column(nullable = false)
-    private String category;
+    @Builder.Default
+    private int stockQuantity = 0;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Gender gender;
+
+    @Column(nullable = false, length = 50)
     private String color;
 
-    @Builder.Default
     @Column(nullable = false)
-    private int stock = 0;
+    private double size;
 
-    private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
+    @OneToMany(mappedBy = "sneaker", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @Column(nullable = false)
-    private boolean active = true;
+    private List<SneakerImage> images = new ArrayList<>();
 }

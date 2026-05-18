@@ -4,6 +4,7 @@ import com.prosneaker.sneakerstore.modules.cart.dto.CartItemResponse;
 import com.prosneaker.sneakerstore.modules.cart.dto.CartResponse;
 import com.prosneaker.sneakerstore.modules.cart.entity.Cart;
 import com.prosneaker.sneakerstore.modules.cart.entity.CartItem;
+import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -37,15 +38,18 @@ public class CartMapper {
     }
 
     private CartItemResponse toItemResponse(CartItem item, BigDecimal subtotal) {
+        Sneaker sneaker = item.getSneaker();
+        String imageUrl = sneaker.getImages().isEmpty() ? null : sneaker.getImages().getFirst().getImageUrl();
+
         return CartItemResponse.builder()
                 .id(item.getId())
-                .sneakerId(item.getSneaker().getId())
-                .sneakerName(item.getSneaker().getName())
-                .brand(item.getSneaker().getBrand())
-                .imageUrl(item.getSneaker().getImageUrl())
-                .sizeValue(item.getSizeValue())
+                .sneakerId(sneaker.getId())
+                .sneakerName(sneaker.getName())
+                .brand(sneaker.getBrand())
+                .imageUrl(imageUrl)
+                .size(sneaker.getSize())
                 .quantity(item.getQuantity())
-                .unitPrice(item.getSneaker().getPrice())
+                .unitPrice(sneaker.getPrice())
                 .subtotal(subtotal)
                 .build();
     }

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -33,12 +34,15 @@ public class SneakerController {
     private final SneakerService sneakerService;
 
     @GetMapping
-    public ApiResponse<PageResponse<SneakerResponse>> list(
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String category,
+    public ApiResponse<PageResponse<SneakerResponse>> getAll(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
             @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.success(sneakerService.search(brand, category, search, pageable));
+        return ApiResponse.success(
+                sneakerService.search(search, brand, categoryId, minPrice, maxPrice, pageable));
     }
 
     @GetMapping("/{id}")

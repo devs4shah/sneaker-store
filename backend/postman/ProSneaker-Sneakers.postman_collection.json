@@ -1,0 +1,617 @@
+{
+  "info": {
+    "name": "ProSneaker - Sneakers Module",
+    "description": "Postman test cases for Category and Sneaker product APIs.\n\nRun order:\n1. Setup → Admin Login\n2. Categories → Get All (save categoryId)\n3. Admin → Create Sneaker (save sneakerId)\n4. Public → GET tests\n5. Admin → Update / Delete\n6. Negative tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "accessToken", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "sneakerId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Setup",
+      "item": [
+        {
+          "name": "Admin Login (save token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Login successful', () => pm.expect(json.success).to.be.true);",
+                  "pm.test('Admin role', () => pm.expect(json.data.user.role).to.eql('ROLE_ADMIN'));",
+                  "pm.collectionVariables.set('accessToken', json.data.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@prosneaker.com\",\n  \"password\": \"Admin@12345\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Categories",
+      "item": [
+        {
+          "name": "GET All Categories (public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Success true', () => pm.expect(json.success).to.be.true);",
+                  "pm.test('Has categories', () => pm.expect(json.data.length).to.be.above(0));",
+                  "if (json.data.length > 0) {",
+                  "    pm.collectionVariables.set('categoryId', json.data[0].id);",
+                  "    console.log('categoryId saved:', json.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "POST Create Category (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Category created', () => pm.expect(json.success).to.be.true);",
+                  "pm.collectionVariables.set('categoryId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Basketball\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "POST Create Category - Duplicate (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test('Success false', () => pm.expect(json.success).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Running\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Sneakers - Admin",
+      "item": [
+        {
+          "name": "POST Create Sneaker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Sneaker created', () => pm.expect(json.success).to.be.true);",
+                  "pm.test('Has name', () => pm.expect(json.data.name).to.eql('Postman Test Runner'));",
+                  "pm.test('Has category', () => pm.expect(json.data.category).to.be.an('object'));",
+                  "pm.test('Has images', () => pm.expect(json.data.images.length).to.be.above(0));",
+                  "pm.collectionVariables.set('sneakerId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Test Runner\",\n  \"brand\": \"Nike\",\n  \"description\": \"Created via Postman collection\",\n  \"price\": 149.99,\n  \"stockQuantity\": 30,\n  \"gender\": \"UNISEX\",\n  \"color\": \"Red/Black\",\n  \"size\": 10.5,\n  \"categoryId\": \"{{categoryId}}\",\n  \"imageUrls\": [\n    \"https://images.example.com/postman-sneaker-1.jpg\",\n    \"https://images.example.com/postman-sneaker-2.jpg\"\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/sneakers"
+          }
+        },
+        {
+          "name": "POST Create Sneaker - Validation Error (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Validation failed', () => pm.expect(json.success).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"brand\": \"Nike\",\n  \"price\": -10,\n  \"stockQuantity\": -1,\n  \"gender\": \"INVALID\",\n  \"color\": \"Red\",\n  \"size\": 0,\n  \"categoryId\": \"00000000-0000-0000-0000-000000000000\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sneakers"
+          }
+        },
+        {
+          "name": "PUT Update Sneaker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Price updated', () => pm.expect(json.data.price).to.eql(139.99));",
+                  "pm.test('Stock updated', () => pm.expect(json.data.stockQuantity).to.eql(28));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 139.99,\n  \"stockQuantity\": 28,\n  \"description\": \"Updated via Postman\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sneakers/{{sneakerId}}"
+          }
+        },
+        {
+          "name": "DELETE Sneaker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+            },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/sneakers/{{sneakerId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Sneakers - Public GET",
+      "item": [
+        {
+          "name": "GET All Sneakers (default pagination)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Paginated response', () => {",
+                  "    pm.expect(json.data.content).to.be.an('array');",
+                  "    pm.expect(json.data.totalElements).to.be.a('number');",
+                  "});",
+                  "if (json.data.content.length > 0) {",
+                  "    pm.collectionVariables.set('sneakerId', json.data.content[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sneakers?page=0&size=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sneakers"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sneakers - Search by name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Results match search', () => {",
+                  "    json.data.content.forEach(s => {",
+                  "        pm.expect(s.name.toLowerCase()).to.include('air');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sneakers?search=air&page=0&size=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sneakers"],
+              "query": [
+                { "key": "search", "value": "air" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sneakers - Filter by brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "json.data.content.forEach(s => {",
+                  "    pm.test('Brand is Nike', () => pm.expect(s.brand.toLowerCase()).to.eql('nike'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sneakers?brand=Nike&page=0&size=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sneakers"],
+              "query": [
+                { "key": "brand", "value": "Nike" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sneakers - Filter by category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const categoryId = pm.collectionVariables.get('categoryId');",
+                  "json.data.content.forEach(s => {",
+                  "    pm.test('Category matches', () => pm.expect(s.category.id).to.eql(categoryId));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sneakers?categoryId={{categoryId}}&page=0&size=12"
+          }
+        },
+        {
+          "name": "GET Sneakers - Filter by price range",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "json.data.content.forEach(s => {",
+                  "    pm.test('Price in range', () => {",
+                  "        pm.expect(Number(s.price)).to.be.at.least(50);",
+                  "        pm.expect(Number(s.price)).to.be.at.most(150);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sneakers?minPrice=50&maxPrice=150&page=0&size=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sneakers"],
+              "query": [
+                { "key": "minPrice", "value": "50" },
+                { "key": "maxPrice", "value": "150" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sneakers - Combined filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sneakers?search=classic&brand=Reebok&minPrice=50&maxPrice=100&page=0&size=12&sort=price,asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sneakers"],
+              "query": [
+                { "key": "search", "value": "classic" },
+                { "key": "brand", "value": "Reebok" },
+                { "key": "minPrice", "value": "50" },
+                { "key": "maxPrice", "value": "100" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "12" },
+                { "key": "sort", "value": "price,asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sneaker by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has full details', () => {",
+                  "    pm.expect(json.data.id).to.eql(pm.collectionVariables.get('sneakerId'));",
+                  "    pm.expect(json.data.category).to.be.an('object');",
+                  "    pm.expect(json.data.images).to.be.an('array');",
+                  "    pm.expect(json.data.createdAt).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sneakers/{{sneakerId}}"
+          }
+        },
+        {
+          "name": "GET Sneaker by ID - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test('Success false', () => pm.expect(json.success).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sneakers/00000000-0000-0000-0000-000000000000"
+          }
+        },
+        {
+          "name": "GET Sneakers - Invalid price range (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('minPrice > maxPrice error', () => pm.expect(json.message).to.include('minPrice'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sneakers?minPrice=200&maxPrice=50"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Security Tests",
+      "item": [
+        {
+          "name": "POST Create Sneaker - No Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized\",\n  \"brand\": \"Nike\",\n  \"price\": 99.99,\n  \"stockQuantity\": 10,\n  \"gender\": \"MEN\",\n  \"color\": \"Black\",\n  \"size\": 9,\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sneakers"
+          }
+        },
+        {
+          "name": "POST Create Sneaker - User Token (403)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/api/auth/login',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({",
+                  "            email: 'postman.user@example.com',",
+                  "            password: 'SecurePass1'",
+                  "        })",
+                  "    }",
+                  "}, (err, res) => {",
+                  "    if (!err && res.code === 200) {",
+                  "        const json = res.json();",
+                  "        pm.variables.set('userToken', json.data.accessToken);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 or 403', () => {",
+                  "    pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{userToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Forbidden Create\",\n  \"brand\": \"Nike\",\n  \"price\": 99.99,\n  \"stockQuantity\": 10,\n  \"gender\": \"MEN\",\n  \"color\": \"Black\",\n  \"size\": 9,\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/sneakers"
+          }
+        },
+        {
+          "name": "POST Create Category - No Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Skateboarding\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        }
+      ]
+    }
+  ]
+}

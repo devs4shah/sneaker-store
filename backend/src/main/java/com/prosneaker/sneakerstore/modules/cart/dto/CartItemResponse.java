@@ -10,13 +10,13 @@ import java.util.UUID;
 @Builder
 public class CartItemResponse {
 
-    private final UUID id;
-    private final UUID sneakerId;
-    private final String sneakerName;
-    private final String brand;
-    private final String imageUrl;
-    private final double sizeValue;
-    private final int quantity;
-    private final BigDecimal unitPrice;
-    private final BigDecimal subtotal;
+    private UUID id;
+    private UUID sneakerId;
+    private String sneakerName;
+    private String brand;
+    private String imageUrl;
+    private double size;
+    private int quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal subtotal;
 }

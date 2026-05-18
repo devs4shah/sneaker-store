@@ -54,11 +54,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sneakers/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/sneakers/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/sneakers/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/sneakers/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/sneakers/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

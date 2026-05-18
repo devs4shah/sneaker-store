@@ -7,9 +7,8 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class SneakerSizeResponse {
+public class CategoryResponse {
 
-    private final UUID id;
-    private final double sizeValue;
-    private final int stock;
+    private UUID id;
+    private String name;
 }

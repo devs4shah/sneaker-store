@@ -7,16 +7,21 @@ import com.prosneaker.sneakerstore.modules.common.util.PageMapper;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.CreateSneakerRequest;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.SneakerResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.UpdateSneakerRequest;
+import com.prosneaker.sneakerstore.modules.sneakers.entity.Category;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
-import com.prosneaker.sneakerstore.modules.sneakers.entity.SneakerSize;
+import com.prosneaker.sneakerstore.modules.sneakers.entity.SneakerImage;
 import com.prosneaker.sneakerstore.modules.sneakers.mapper.SneakerMapper;
 import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerRepository;
-import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerSizeRepository;
+import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,63 +29,67 @@ import java.util.UUID;
 public class SneakerService {
 
     private final SneakerRepository sneakerRepository;
-    private final SneakerSizeRepository sneakerSizeRepository;
+    private final CategoryService categoryService;
     private final SneakerMapper sneakerMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<SneakerResponse> search(String brand, String category, String search, Pageable pageable) {
-        return PageMapper.toPageResponse(
-                sneakerRepository.searchActive(brand, category, search, pageable),
-                sneaker -> toResponseWithSizes(sneaker.getId()));
+    public PageResponse<SneakerResponse> search(
+            String search,
+            String brand,
+            UUID categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Pageable pageable) {
+
+        validatePriceRange(minPrice, maxPrice);
+
+        Specification<Sneaker> spec = Specification
+                .where(SneakerSpecification.fetchDetails())
+                .and(SneakerSpecification.withName(search))
+                .and(SneakerSpecification.withBrand(brand))
+                .and(SneakerSpecification.withCategoryId(categoryId))
+                .and(SneakerSpecification.withMinPrice(minPrice))
+                .and(SneakerSpecification.withMaxPrice(maxPrice));
+
+        Page<Sneaker> page = sneakerRepository.findAll(spec, pageable);
+        return PageMapper.toPageResponse(page, sneakerMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public SneakerResponse getById(UUID id) {
-        Sneaker sneaker = findActiveSneaker(id);
-        return toResponseWithSizes(sneaker.getId());
+        Sneaker sneaker = findSneakerWithDetails(id);
+        return sneakerMapper.toResponse(sneaker);
     }
 
     @Transactional
     public SneakerResponse create(CreateSneakerRequest request) {
+        Category category = categoryService.getCategoryById(request.getCategoryId());
+
         Sneaker sneaker = Sneaker.builder()
-                .brand(request.getBrand().trim())
                 .name(request.getName().trim())
+                .brand(request.getBrand().trim())
                 .description(request.getDescription())
                 .price(request.getPrice())
-                .category(request.getCategory().trim())
+                .stockQuantity(request.getStockQuantity())
+                .gender(request.getGender())
                 .color(request.getColor().trim())
-                .imageUrl(request.getImageUrl())
-                .active(true)
+                .size(request.getSize())
+                .category(category)
                 .build();
 
-        sneaker = sneakerRepository.save(sneaker);
-
-        int totalStock = 0;
-        for (CreateSneakerRequest.SizeStockRequest sizeRequest : request.getSizes()) {
-            SneakerSize size = SneakerSize.builder()
-                    .sneaker(sneaker)
-                    .sizeValue(sizeRequest.getSizeValue())
-                    .stock(sizeRequest.getStock())
-                    .build();
-            sneakerSizeRepository.save(size);
-            totalStock += sizeRequest.getStock();
-        }
-
-        sneaker.setStock(totalStock);
-        sneakerRepository.save(sneaker);
-
-        return toResponseWithSizes(sneaker.getId());
+        addImages(sneaker, request.getImageUrls());
+        return sneakerMapper.toResponse(sneakerRepository.save(sneaker));
     }
 
     @Transactional
     public SneakerResponse update(UUID id, UpdateSneakerRequest request) {
-        Sneaker sneaker = findSneaker(id);
+        Sneaker sneaker = findSneakerWithDetails(id);
 
-        if (request.getBrand() != null) {
-            sneaker.setBrand(request.getBrand().trim());
-        }
         if (request.getName() != null) {
             sneaker.setName(request.getName().trim());
+        }
+        if (request.getBrand() != null) {
+            sneaker.setBrand(request.getBrand().trim());
         }
         if (request.getDescription() != null) {
             sneaker.setDescription(request.getDescription());
@@ -88,50 +97,65 @@ public class SneakerService {
         if (request.getPrice() != null) {
             sneaker.setPrice(request.getPrice());
         }
-        if (request.getCategory() != null) {
-            sneaker.setCategory(request.getCategory().trim());
+        if (request.getStockQuantity() != null) {
+            sneaker.setStockQuantity(request.getStockQuantity());
+        }
+        if (request.getGender() != null) {
+            sneaker.setGender(request.getGender());
         }
         if (request.getColor() != null) {
             sneaker.setColor(request.getColor().trim());
         }
-        if (request.getImageUrl() != null) {
-            sneaker.setImageUrl(request.getImageUrl());
+        if (request.getSize() != null) {
+            sneaker.setSize(request.getSize());
         }
-        if (request.getActive() != null) {
-            sneaker.setActive(request.getActive());
+        if (request.getCategoryId() != null) {
+            sneaker.setCategory(categoryService.getCategoryById(request.getCategoryId()));
+        }
+        if (request.getImageUrls() != null) {
+            sneaker.getImages().clear();
+            addImages(sneaker, request.getImageUrls());
         }
 
-        sneakerRepository.save(sneaker);
-        return toResponseWithSizes(sneaker.getId());
+        return sneakerMapper.toResponse(sneakerRepository.save(sneaker));
     }
 
     @Transactional
     public void delete(UUID id) {
         Sneaker sneaker = findSneaker(id);
-        sneaker.setActive(false);
-        sneakerRepository.save(sneaker);
+        sneakerRepository.delete(sneaker);
     }
 
-    public Sneaker findActiveSneaker(UUID id) {
-        Sneaker sneaker = findSneaker(id);
-        if (!sneaker.isActive()) {
-            throw new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found");
-        }
-        return sneaker;
-    }
-
+    @Transactional(readOnly = true)
     public Sneaker findSneaker(UUID id) {
         return sneakerRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
     }
 
-    public SneakerSize findSize(UUID sneakerId, double sizeValue) {
-        return sneakerSizeRepository.findBySneakerIdAndSizeValue(sneakerId, sizeValue)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Size not available for this sneaker"));
+    @Transactional(readOnly = true)
+    public Sneaker findSneakerWithDetails(UUID id) {
+        return sneakerRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
     }
 
-    private SneakerResponse toResponseWithSizes(UUID sneakerId) {
-        Sneaker sneaker = findSneaker(sneakerId);
-        return sneakerMapper.toResponse(sneaker, sneakerSizeRepository.findBySneakerId(sneakerId));
+    private void addImages(Sneaker sneaker, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return;
+        }
+        for (String url : imageUrls) {
+            if (url != null && !url.isBlank()) {
+                SneakerImage image = SneakerImage.builder()
+                        .sneaker(sneaker)
+                        .imageUrl(url.trim())
+                        .build();
+                sneaker.getImages().add(image);
+            }
+        }
+    }
+
+    private void validatePriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
+        }
     }
 }

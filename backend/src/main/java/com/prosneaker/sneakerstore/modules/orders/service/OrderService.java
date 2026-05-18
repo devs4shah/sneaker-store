@@ -16,9 +16,7 @@ import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
 import com.prosneaker.sneakerstore.modules.orders.repository.OrderRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
-import com.prosneaker.sneakerstore.modules.sneakers.entity.SneakerSize;
-import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerSizeRepository;
-import com.prosneaker.sneakerstore.modules.sneakers.service.SneakerService;
+import com.prosneaker.sneakerstore.modules.sneakers.repository.SneakerRepository;
 import com.prosneaker.sneakerstore.modules.users.entity.User;
 import com.prosneaker.sneakerstore.modules.users.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +35,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final CartService cartService;
-    private final SneakerService sneakerService;
-    private final SneakerSizeRepository sneakerSizeRepository;
+    private final SneakerRepository sneakerRepository;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Transactional
@@ -62,23 +59,21 @@ public class OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (CartItem cartItem : cart.getItems()) {
-            SneakerSize size = sneakerService.findSize(
-                    cartItem.getSneaker().getId(), cartItem.getSizeValue());
+            Sneaker sneaker = sneakerRepository.findById(cartItem.getSneaker().getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
 
-            if (size.getStock() < cartItem.getQuantity()) {
+            if (sneaker.getStockQuantity() < cartItem.getQuantity()) {
                 throw new BusinessException(
                         ErrorCode.BAD_REQUEST,
-                        "Insufficient stock for " + cartItem.getSneaker().getName()
-                                + " size " + cartItem.getSizeValue());
+                        "Insufficient stock for " + sneaker.getName());
             }
 
-            Sneaker sneaker = cartItem.getSneaker();
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .sneaker(sneaker)
                     .sneakerName(sneaker.getName())
                     .brand(sneaker.getBrand())
-                    .sizeValue(cartItem.getSizeValue())
+                    .sizeValue(sneaker.getSize())
                     .quantity(cartItem.getQuantity())
                     .unitPrice(sneaker.getPrice())
                     .build();
@@ -88,10 +83,8 @@ public class OrderService {
             BigDecimal lineTotal = sneaker.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(lineTotal);
 
-            size.setStock(size.getStock() - cartItem.getQuantity());
-            sneakerSizeRepository.save(size);
-
-            sneaker.setStock(sneaker.getStock() - cartItem.getQuantity());
+            sneaker.setStockQuantity(sneaker.getStockQuantity() - cartItem.getQuantity());
+            sneakerRepository.save(sneaker);
         }
 
         order.setTotalAmount(totalAmount);
