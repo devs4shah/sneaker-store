@@ -15,20 +15,22 @@ com\prosneaker\sneakerstore\modules\common\dto\PageResponse.class
 com\prosneaker\sneakerstore\modules\cart\controller\CartController.class
 com\prosneaker\sneakerstore\modules\sneakers\controller\SneakerController.class
 com\prosneaker\sneakerstore\SneakerStoreApplication.class
-com\prosneaker\sneakerstore\config\JwtService.class
 com\prosneaker\sneakerstore\modules\cart\entity\CartItem$CartItemBuilder.class
 com\prosneaker\sneakerstore\modules\cart\entity\CartItem.class
+com\prosneaker\sneakerstore\config\security\JwtService.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerSizeResponse.class
 com\prosneaker\sneakerstore\modules\orders\service\OrderService.class
-com\prosneaker\sneakerstore\config\JwtProperties.class
 com\prosneaker\sneakerstore\modules\orders\entity\OrderItem.class
 com\prosneaker\sneakerstore\modules\sneakers\repository\SneakerRepository.class
 com\prosneaker\sneakerstore\modules\orders\dto\OrderItemResponse$OrderItemResponseBuilder.class
 com\prosneaker\sneakerstore\modules\orders\entity\Order$OrderBuilder.class
 com\prosneaker\sneakerstore\modules\cart\dto\CartItemResponse.class
+com\prosneaker\sneakerstore\config\security\JwtAuthenticationFilter.class
+com\prosneaker\sneakerstore\config\security\JwtConstants.class
 com\prosneaker\sneakerstore\modules\common\entity\BaseEntity.class
 com\prosneaker\sneakerstore\modules\orders\dto\OrderItemResponse.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\UpdateSneakerRequest.class
+com\prosneaker\sneakerstore\config\security\JwtAccessDeniedHandler.class
 com\prosneaker\sneakerstore\modules\auth\dto\AuthResponse.class
 com\prosneaker\sneakerstore\modules\auth\controller\AuthController.class
 com\prosneaker\sneakerstore\modules\orders\dto\OrderResponse.class
@@ -37,8 +39,10 @@ com\prosneaker\sneakerstore\modules\cart\dto\UpdateCartItemRequest.class
 com\prosneaker\sneakerstore\config\ApplicationConfig.class
 com\prosneaker\sneakerstore\modules\users\entity\User.class
 com\prosneaker\sneakerstore\config\DataInitializer.class
+com\prosneaker\sneakerstore\config\security\JwtAuthenticationEntryPoint.class
 com\prosneaker\sneakerstore\modules\auth\service\AuthService.class
 com\prosneaker\sneakerstore\modules\admin\controller\AdminController.class
+com\prosneaker\sneakerstore\modules\auth\dto\RefreshTokenRequest.class
 com\prosneaker\sneakerstore\modules\sneakers\entity\SneakerSize.class
 com\prosneaker\sneakerstore\modules\users\service\UserDetailsServiceImpl.class
 com\prosneaker\sneakerstore\modules\cart\dto\CartResponse.class
@@ -46,6 +50,7 @@ com\prosneaker\sneakerstore\modules\orders\dto\OrderResponse$OrderResponseBuilde
 com\prosneaker\sneakerstore\modules\users\controller\UserController.class
 com\prosneaker\sneakerstore\modules\orders\repository\OrderRepository.class
 com\prosneaker\sneakerstore\modules\users\entity\Role.class
+com\prosneaker\sneakerstore\config\security\JwtProperties.class
 com\prosneaker\sneakerstore\modules\cart\repository\CartItemRepository.class
 com\prosneaker\sneakerstore\config\SecurityConfig.class
 com\prosneaker\sneakerstore\modules\cart\entity\Cart$CartBuilder.class
@@ -64,7 +69,6 @@ com\prosneaker\sneakerstore\modules\orders\controller\OrderController.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\CreateSneakerRequest$SizeStockRequest.class
 com\prosneaker\sneakerstore\modules\orders\dto\CreateOrderRequest.class
 com\prosneaker\sneakerstore\modules\cart\service\CartService.class
-com\prosneaker\sneakerstore\config\JwtAuthenticationFilter.class
 com\prosneaker\sneakerstore\modules\orders\entity\OrderStatus.class
 com\prosneaker\sneakerstore\modules\common\util\PageMapper.class
 com\prosneaker\sneakerstore\modules\orders\entity\Order.class
@@ -77,4 +81,5 @@ com\prosneaker\sneakerstore\modules\users\dto\UserResponse$UserResponseBuilder.c
 com\prosneaker\sneakerstore\modules\users\dto\UserResponse.class
 com\prosneaker\sneakerstore\modules\common\exception\BusinessException.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerSizeResponse$SneakerSizeResponseBuilder.class
+com\prosneaker\sneakerstore\modules\auth\security\SecurityUtils.class
 com\prosneaker\sneakerstore\modules\orders\mapper\OrderMapper.class
