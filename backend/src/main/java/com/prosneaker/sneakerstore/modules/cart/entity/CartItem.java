@@ -2,6 +2,7 @@ package com.prosneaker.sneakerstore.modules.cart.entity;
 
 import com.prosneaker.sneakerstore.modules.common.entity.BaseEntity;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -13,6 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(
@@ -34,5 +37,9 @@ public class CartItem extends BaseEntity {
     @JoinColumn(name = "sneaker_id", nullable = false)
     private Sneaker sneaker;
 
+    @Column(nullable = false)
     private int quantity;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal priceAtAddition;
 }

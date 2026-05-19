@@ -14,7 +14,6 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
             SELECT DISTINCT c FROM Cart c
             LEFT JOIN FETCH c.items i
             LEFT JOIN FETCH i.sneaker s
-            LEFT JOIN FETCH s.images
             WHERE c.user.id = :userId
             """)
     Optional<Cart> findByUserIdWithItems(@Param("userId") UUID userId);

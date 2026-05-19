@@ -11,8 +11,8 @@ import java.util.UUID;
 @Builder
 public class CartResponse {
 
-    private final UUID id;
-    private final List<CartItemResponse> items;
-    private final int totalItems;
-    private final BigDecimal totalAmount;
+    private UUID id;
+    private List<CartItemResponse> items;
+    private int totalItems;
+    private BigDecimal subtotal;
 }

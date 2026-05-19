@@ -30,64 +30,74 @@ public class CartService {
     private final SneakerService sneakerService;
     private final UserDetailsServiceImpl userDetailsService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CartResponse getCart(String email) {
         return cartMapper.toResponse(getOrCreateCart(email));
     }
 
     @Transactional
     public CartResponse addItem(String email, AddCartItemRequest request) {
+        validateQuantity(request.getQuantity());
+
         Cart cart = getOrCreateCart(email);
         Sneaker sneaker = sneakerService.findSneakerWithDetails(request.getSneakerId());
 
-        var existing = cartItemRepository.findByCartIdAndSneakerId(cart.getId(), request.getSneakerId());
-        final int newQuantity = existing
-                .map(item -> item.getQuantity() + request.getQuantity())
-                .orElse(request.getQuantity());
-
-        if (sneaker.getStockQuantity() < newQuantity) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "Insufficient stock");
+        if (sneaker.getStockQuantity() <= 0) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "Sneaker is out of stock");
         }
 
-        existing.ifPresentOrElse(
-                item -> item.setQuantity(newQuantity),
-                () -> {
-                    CartItem item = CartItem.builder()
-                            .cart(cart)
-                            .sneaker(sneaker)
-                            .quantity(request.getQuantity())
-                            .build();
-                    cart.getItems().add(item);
-                });
+        var existing = cartItemRepository.findByCartIdAndSneakerId(cart.getId(), request.getSneakerId());
 
-        return cartMapper.toResponse(getOrCreateCart(email));
+        if (existing.isPresent()) {
+            CartItem item = existing.get();
+            int newQuantity = item.getQuantity() + request.getQuantity();
+            validateStock(sneaker, newQuantity);
+            item.setQuantity(newQuantity);
+        } else {
+            validateStock(sneaker, request.getQuantity());
+            CartItem item = CartItem.builder()
+                    .cart(cart)
+                    .sneaker(sneaker)
+                    .quantity(request.getQuantity())
+                    .priceAtAddition(sneaker.getPrice())
+                    .build();
+            cart.getItems().add(item);
+        }
+
+        cartRepository.save(cart);
+        return cartMapper.toResponse(getCartForUser(email));
     }
 
     @Transactional
     public CartResponse updateItem(String email, UUID itemId, UpdateCartItemRequest request) {
-        Cart cart = getOrCreateCart(email);
+        validateQuantity(request.getQuantity());
+
+        Cart cart = getCartForUser(email);
         CartItem item = findCartItem(cart, itemId);
+        Sneaker sneaker = item.getSneaker();
 
-        if (item.getSneaker().getStockQuantity() < request.getQuantity()) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "Insufficient stock");
-        }
-
+        validateStock(sneaker, request.getQuantity());
         item.setQuantity(request.getQuantity());
+
+        cartRepository.save(cart);
         return cartMapper.toResponse(cart);
     }
 
     @Transactional
     public CartResponse removeItem(String email, UUID itemId) {
-        Cart cart = getOrCreateCart(email);
+        Cart cart = getCartForUser(email);
         CartItem item = findCartItem(cart, itemId);
         cart.getItems().remove(item);
+        cartItemRepository.delete(item);
         return cartMapper.toResponse(cart);
     }
 
     @Transactional
-    public void clearCart(String email) {
-        Cart cart = getOrCreateCart(email);
+    public CartResponse clearCart(String email) {
+        Cart cart = getCartForUser(email);
         cart.getItems().clear();
+        cartRepository.save(cart);
+        return cartMapper.toResponse(cart);
     }
 
     @Transactional
@@ -97,10 +107,31 @@ public class CartService {
                 .orElseGet(() -> cartRepository.save(Cart.builder().user(user).build()));
     }
 
+    @Transactional(readOnly = true)
+    public Cart getCartForUser(String email) {
+        User user = userDetailsService.getUserByEmail(email);
+        return cartRepository.findByUserIdWithItems(user.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Cart not found"));
+    }
+
     private CartItem findCartItem(Cart cart, UUID itemId) {
         return cart.getItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Cart item not found"));
+    }
+
+    private void validateQuantity(int quantity) {
+        if (quantity < 1) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "Quantity must be at least 1");
+        }
+    }
+
+    private void validateStock(Sneaker sneaker, int requestedQuantity) {
+        if (requestedQuantity > sneaker.getStockQuantity()) {
+            throw new BusinessException(
+                    ErrorCode.BAD_REQUEST,
+                    "Insufficient stock. Available: " + sneaker.getStockQuantity());
+        }
     }
 }

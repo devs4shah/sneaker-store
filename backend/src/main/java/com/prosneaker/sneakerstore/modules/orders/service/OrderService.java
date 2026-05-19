@@ -75,12 +75,13 @@ public class OrderService {
                     .brand(sneaker.getBrand())
                     .sizeValue(sneaker.getSize())
                     .quantity(cartItem.getQuantity())
-                    .unitPrice(sneaker.getPrice())
+                    .unitPrice(cartItem.getPriceAtAddition())
                     .build();
 
             order.getItems().add(orderItem);
 
-            BigDecimal lineTotal = sneaker.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+            BigDecimal lineTotal = cartItem.getPriceAtAddition()
+                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(lineTotal);
 
             sneaker.setStockQuantity(sneaker.getStockQuantity() - cartItem.getQuantity());
@@ -90,7 +91,6 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
         order = orderRepository.save(order);
 
-        cart.getItems().clear();
         cartService.clearCart(email);
 
         Order savedOrder = orderRepository.findByIdWithItems(order.getId()).orElse(order);

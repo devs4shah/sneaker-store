@@ -13,32 +13,31 @@ import java.math.BigDecimal;
 public class CartMapper {
 
     public CartResponse toResponse(Cart cart) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
         int totalItems = 0;
+        BigDecimal subtotal = BigDecimal.ZERO;
 
         var itemResponses = cart.getItems().stream()
-                .map(item -> {
-                    BigDecimal subtotal = item.getSneaker().getPrice()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()));
-                    return toItemResponse(item, subtotal);
-                })
+                .map(this::toItemResponse)
                 .toList();
 
         for (CartItemResponse item : itemResponses) {
-            totalAmount = totalAmount.add(item.getSubtotal());
             totalItems += item.getQuantity();
+            subtotal = subtotal.add(item.getLineSubtotal());
         }
 
         return CartResponse.builder()
                 .id(cart.getId())
                 .items(itemResponses)
                 .totalItems(totalItems)
-                .totalAmount(totalAmount)
+                .subtotal(subtotal)
                 .build();
     }
 
-    private CartItemResponse toItemResponse(CartItem item, BigDecimal subtotal) {
+    private CartItemResponse toItemResponse(CartItem item) {
         Sneaker sneaker = item.getSneaker();
+        BigDecimal lineSubtotal = item.getPriceAtAddition()
+                .multiply(BigDecimal.valueOf(item.getQuantity()));
+
         String imageUrl = sneaker.getImages().isEmpty() ? null : sneaker.getImages().getFirst().getImageUrl();
 
         return CartItemResponse.builder()
@@ -49,8 +48,9 @@ public class CartMapper {
                 .imageUrl(imageUrl)
                 .size(sneaker.getSize())
                 .quantity(item.getQuantity())
-                .unitPrice(sneaker.getPrice())
-                .subtotal(subtotal)
+                .priceAtAddition(item.getPriceAtAddition())
+                .currentUnitPrice(sneaker.getPrice())
+                .lineSubtotal(lineSubtotal)
                 .build();
     }
 }

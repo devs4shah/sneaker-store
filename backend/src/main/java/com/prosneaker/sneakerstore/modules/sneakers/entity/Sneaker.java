@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.BatchSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,6 +62,7 @@ public class Sneaker extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "sneaker", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     @Builder.Default
     private List<SneakerImage> images = new ArrayList<>();
 }
