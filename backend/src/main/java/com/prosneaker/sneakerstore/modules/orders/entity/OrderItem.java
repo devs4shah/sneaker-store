@@ -36,15 +36,12 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private String sneakerName;
 
-    @Column(nullable = false)
-    private String brand;
-
-    @Column(name = "size_value", nullable = false)
-    private double sizeValue;
+    @Column(name = "sneaker_price", nullable = false)
+    private BigDecimal sneakerPrice;
 
     @Column(nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
-    private BigDecimal unitPrice;
+    @Column(name = "image_url")
+    private String imageUrl;
 }

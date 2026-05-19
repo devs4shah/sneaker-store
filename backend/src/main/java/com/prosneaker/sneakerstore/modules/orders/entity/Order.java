@@ -35,9 +35,16 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "order_number", nullable = false, unique = true, length = 32)
+    private String orderNumber;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus status;
+    @Column(name = "order_status", nullable = false)
+    private OrderStatus orderStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false)
+    private PaymentStatus paymentStatus;
 
     @Column(nullable = false)
     private BigDecimal totalAmount;
@@ -53,6 +60,10 @@ public class Order extends BaseEntity {
 
     @Column(nullable = false)
     private String country;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private int totalQuantity = 0;
 
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

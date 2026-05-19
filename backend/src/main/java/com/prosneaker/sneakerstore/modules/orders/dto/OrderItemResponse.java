@@ -11,11 +11,9 @@ import java.util.UUID;
 public class OrderItemResponse {
 
     private final UUID id;
-    private final UUID sneakerId;
     private final String sneakerName;
-    private final String brand;
-    private final double sizeValue;
+    private final BigDecimal sneakerPrice;
     private final int quantity;
-    private final BigDecimal unitPrice;
-    private final BigDecimal subtotal;
+    private final String imageUrl;
+    private final BigDecimal lineSubtotal;
 }

@@ -33,10 +33,12 @@ com\prosneaker\sneakerstore\modules\common\exception\GlobalExceptionHandler.clas
 com\prosneaker\sneakerstore\modules\sneakers\storage\LocalImageStorageService$StoredImage.class
 com\prosneaker\sneakerstore\modules\orders\dto\CreateOrderRequest.class
 com\prosneaker\sneakerstore\modules\orders\entity\OrderStatus.class
+com\prosneaker\sneakerstore\modules\orders\dto\OrderListResponse$OrderListResponseBuilder.class
 com\prosneaker\sneakerstore\modules\common\util\PageMapper.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerImageResponse.class
 com\prosneaker\sneakerstore\modules\orders\entity\Order.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\SneakerResponse$SneakerResponseBuilder.class
+com\prosneaker\sneakerstore\modules\orders\service\OrderNumberGenerator.class
 com\prosneaker\sneakerstore\modules\sneakers\entity\Sneaker$SneakerBuilder.class
 com\prosneaker\sneakerstore\modules\users\dto\UserResponse$UserResponseBuilder.class
 com\prosneaker\sneakerstore\modules\users\dto\UserResponse.class
@@ -56,6 +58,7 @@ com\prosneaker\sneakerstore\modules\sneakers\entity\Sneaker.class
 com\prosneaker\sneakerstore\modules\common\dto\PageResponse.class
 com\prosneaker\sneakerstore\modules\cart\entity\CartItem$CartItemBuilder.class
 com\prosneaker\sneakerstore\modules\cart\entity\CartItem.class
+com\prosneaker\sneakerstore\modules\orders\service\OrderStatusTransitionValidator.class
 com\prosneaker\sneakerstore\modules\sneakers\repository\CategoryRepository.class
 com\prosneaker\sneakerstore\modules\orders\service\OrderService.class
 com\prosneaker\sneakerstore\modules\orders\entity\OrderItem.class
@@ -76,6 +79,7 @@ com\prosneaker\sneakerstore\config\DataInitializer.class
 com\prosneaker\sneakerstore\config\security\JwtAuthenticationEntryPoint.class
 com\prosneaker\sneakerstore\modules\auth\service\AuthService.class
 com\prosneaker\sneakerstore\modules\auth\dto\RefreshTokenRequest.class
+com\prosneaker\sneakerstore\config\DatabaseSchemaMigration.class
 com\prosneaker\sneakerstore\modules\sneakers\entity\Category.class
 com\prosneaker\sneakerstore\modules\sneakers\service\SneakerImageService.class
 com\prosneaker\sneakerstore\modules\sneakers\dto\ImageUploadResponse$ImageUploadResponseBuilder.class
@@ -94,6 +98,8 @@ com\prosneaker\sneakerstore\modules\orders\entity\OrderItem$OrderItemBuilder.cla
 com\prosneaker\sneakerstore\modules\users\service\UserService.class
 com\prosneaker\sneakerstore\modules\orders\controller\OrderController.class
 com\prosneaker\sneakerstore\modules\cart\service\CartService.class
+com\prosneaker\sneakerstore\modules\orders\entity\PaymentStatus.class
+com\prosneaker\sneakerstore\modules\orders\dto\OrderListResponse.class
 com\prosneaker\sneakerstore\modules\sneakers\repository\SneakerSpecification.class
 com\prosneaker\sneakerstore\modules\users\repository\UserRepository.class
 com\prosneaker\sneakerstore\modules\auth\dto\RegisterRequest.class

@@ -8,11 +8,13 @@ import com.prosneaker.sneakerstore.modules.common.exception.BusinessException;
 import com.prosneaker.sneakerstore.modules.common.exception.ErrorCode;
 import com.prosneaker.sneakerstore.modules.common.util.PageMapper;
 import com.prosneaker.sneakerstore.modules.orders.dto.CreateOrderRequest;
+import com.prosneaker.sneakerstore.modules.orders.dto.OrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.UpdateOrderStatusRequest;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
+import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
 import com.prosneaker.sneakerstore.modules.orders.repository.OrderRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
@@ -37,45 +39,53 @@ public class OrderService {
     private final CartService cartService;
     private final SneakerRepository sneakerRepository;
     private final UserDetailsServiceImpl userDetailsService;
+    private final OrderNumberGenerator orderNumberGenerator;
+    private final OrderStatusTransitionValidator statusTransitionValidator;
 
     @Transactional
     public OrderResponse checkout(String email, CreateOrderRequest request) {
         Cart cart = cartService.getOrCreateCart(email);
         if (cart.getItems().isEmpty()) {
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "Cart is empty");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "Cannot checkout with an empty cart");
         }
 
         User user = userDetailsService.getUserByEmail(email);
         Order order = Order.builder()
                 .user(user)
-                .status(OrderStatus.PENDING)
+                .orderNumber(orderNumberGenerator.generate())
+                .orderStatus(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.PENDING)
                 .shippingAddress(request.getShippingAddress().trim())
                 .city(request.getCity().trim())
                 .postalCode(request.getPostalCode().trim())
                 .country(request.getCountry().trim())
                 .totalAmount(BigDecimal.ZERO)
+                .totalQuantity(0)
                 .build();
 
         BigDecimal totalAmount = BigDecimal.ZERO;
+        int totalQuantity = 0;
 
         for (CartItem cartItem : cart.getItems()) {
-            Sneaker sneaker = sneakerRepository.findById(cartItem.getSneaker().getId())
+            Sneaker sneaker = sneakerRepository.findByIdForUpdate(cartItem.getSneaker().getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
 
             if (sneaker.getStockQuantity() < cartItem.getQuantity()) {
                 throw new BusinessException(
                         ErrorCode.BAD_REQUEST,
-                        "Insufficient stock for " + sneaker.getName());
+                        "Insufficient stock for " + sneaker.getName()
+                                + ". Available: " + sneaker.getStockQuantity());
             }
+
+            String imageUrl = resolvePrimaryImageUrl(sneaker);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .sneaker(sneaker)
                     .sneakerName(sneaker.getName())
-                    .brand(sneaker.getBrand())
-                    .sizeValue(sneaker.getSize())
+                    .sneakerPrice(cartItem.getPriceAtAddition())
                     .quantity(cartItem.getQuantity())
-                    .unitPrice(cartItem.getPriceAtAddition())
+                    .imageUrl(imageUrl)
                     .build();
 
             order.getItems().add(orderItem);
@@ -83,12 +93,13 @@ public class OrderService {
             BigDecimal lineTotal = cartItem.getPriceAtAddition()
                     .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(lineTotal);
+            totalQuantity += cartItem.getQuantity();
 
             sneaker.setStockQuantity(sneaker.getStockQuantity() - cartItem.getQuantity());
-            sneakerRepository.save(sneaker);
         }
 
         order.setTotalAmount(totalAmount);
+        order.setTotalQuantity(totalQuantity);
         order = orderRepository.save(order);
 
         cartService.clearCart(email);
@@ -98,10 +109,10 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<OrderResponse> getUserOrders(String email, Pageable pageable) {
+    public PageResponse<OrderListResponse> getUserOrders(String email, Pageable pageable) {
         User user = userDetailsService.getUserByEmail(email);
         Page<Order> page = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageable);
-        return PageMapper.toPageResponse(page, orderMapper::toResponse);
+        return PageMapper.toPageResponse(page, orderMapper::toListResponse);
     }
 
     @Transactional(readOnly = true)
@@ -113,18 +124,50 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable) {
-        Page<Order> page = status != null
-                ? orderRepository.findByStatusOrderByCreatedAtDesc(status, pageable)
+    public PageResponse<OrderListResponse> getAllOrders(OrderStatus orderStatus, Pageable pageable) {
+        Page<Order> page = orderStatus != null
+                ? orderRepository.findByOrderStatusOrderByCreatedAtDesc(orderStatus, pageable)
                 : orderRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return PageMapper.toPageResponse(page, orderMapper::toResponse);
+        return PageMapper.toPageResponse(page, orderMapper::toListResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderById(UUID orderId) {
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
+        return orderMapper.toResponse(order);
     }
 
     @Transactional
     public OrderResponse updateOrderStatus(UUID orderId, UpdateOrderStatusRequest request) {
         Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
-        order.setStatus(request.getStatus());
+
+        OrderStatus currentStatus = order.getOrderStatus();
+        OrderStatus newStatus = request.getOrderStatus();
+        statusTransitionValidator.validateTransition(currentStatus, newStatus);
+
+        if (newStatus == OrderStatus.CANCELLED && currentStatus != OrderStatus.CANCELLED) {
+            restoreStock(order);
+            order.setPaymentStatus(PaymentStatus.REFUNDED);
+        }
+
+        order.setOrderStatus(newStatus);
         return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    private void restoreStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            Sneaker sneaker = sneakerRepository.findByIdForUpdate(item.getSneaker().getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
+            sneaker.setStockQuantity(sneaker.getStockQuantity() + item.getQuantity());
+        }
+    }
+
+    private String resolvePrimaryImageUrl(Sneaker sneaker) {
+        if (sneaker.getImages() == null || sneaker.getImages().isEmpty()) {
+            return null;
+        }
+        return sneaker.getImages().getFirst().getImageUrl();
     }
 }

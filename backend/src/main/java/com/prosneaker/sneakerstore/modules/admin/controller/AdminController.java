@@ -2,6 +2,7 @@ package com.prosneaker.sneakerstore.modules.admin.controller;
 
 import com.prosneaker.sneakerstore.modules.common.dto.ApiResponse;
 import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
+import com.prosneaker.sneakerstore.modules.orders.dto.OrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.UpdateOrderStatusRequest;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
@@ -38,10 +39,15 @@ public class AdminController {
     }
 
     @GetMapping("/orders")
-    public ApiResponse<PageResponse<OrderResponse>> listOrders(
-            @RequestParam(required = false) OrderStatus status,
+    public ApiResponse<PageResponse<OrderListResponse>> listOrders(
+            @RequestParam(required = false) OrderStatus orderStatus,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.success(orderService.getAllOrders(status, pageable));
+        return ApiResponse.success(orderService.getAllOrders(orderStatus, pageable));
+    }
+
+    @GetMapping("/orders/{id}")
+    public ApiResponse<OrderResponse> getOrder(@PathVariable UUID id) {
+        return ApiResponse.success(orderService.getOrderById(id));
     }
 
     @PatchMapping("/orders/{id}/status")

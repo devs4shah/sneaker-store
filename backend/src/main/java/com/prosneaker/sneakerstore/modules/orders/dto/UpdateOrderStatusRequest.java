@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class UpdateOrderStatusRequest {
 
-    @NotNull(message = "Status is required")
-    private OrderStatus status;
+    @NotNull(message = "Order status is required")
+    private OrderStatus orderStatus;
 }
