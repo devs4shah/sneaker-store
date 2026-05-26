@@ -1,0 +1,5 @@
+# Copy this file to application-local.properties and fill in your Razorpay test keys.
+# Get keys from: https://dashboard.razorpay.com/app/keys (Test mode)
+
+razorpay.key=rzp_test_your_key_here
+razorpay.secret=your_secret_here

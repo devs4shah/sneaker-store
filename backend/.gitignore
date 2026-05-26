@@ -4,3 +4,7 @@ uploads/
 *.iml
 .env
 *.log
+
+# Local secrets (never commit)
+src/main/resources/application-local.properties
+application-local.properties

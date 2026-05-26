@@ -1,0 +1,10 @@
+# Production profile example — use environment variables, not committed secrets.
+# Activate with: spring.profiles.active=prod
+#
+# Set on the server:
+#   RAZORPAY_KEY=rzp_live_xxx
+#   RAZORPAY_SECRET=your_live_secret
+
+razorpay.key=${RAZORPAY_KEY}
+razorpay.secret=${RAZORPAY_SECRET}
+razorpay.currency=INR

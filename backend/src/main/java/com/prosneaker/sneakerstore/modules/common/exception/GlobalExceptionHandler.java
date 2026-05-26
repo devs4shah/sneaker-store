@@ -1,6 +1,7 @@
 package com.prosneaker.sneakerstore.modules.common.exception;
 
 import com.prosneaker.sneakerstore.modules.common.dto.ApiResponse;
+import com.prosneaker.sneakerstore.modules.payments.exception.PaymentGatewayException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,6 +25,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleBusinessException(BusinessException ex) {
+        return ResponseEntity
+                .status(ex.getErrorCode().getStatus())
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PaymentGatewayException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentGateway(PaymentGatewayException ex) {
+        log.error("Payment gateway error: {}", ex.getMessage());
         return ResponseEntity
                 .status(ex.getErrorCode().getStatus())
                 .body(ApiResponse.error(ex.getMessage()));
