@@ -20,14 +20,17 @@ export function AppHeader() {
   return (
     <header className="border-b border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link
-          href="/dashboard"
-          className="text-lg font-bold text-gray-900 dark:text-zinc-100"
-        >
+        <Link href="/sneakers" className="text-lg font-bold text-gray-900 dark:text-zinc-100">
           Pro<span className="text-brand-600 dark:text-brand-400">Sneaker</span>
         </Link>
 
         <nav className="flex items-center gap-4 text-sm">
+          <Link
+            href="/sneakers"
+            className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            Shop
+          </Link>
           <Link
             href="/dashboard"
             className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"

@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import type { ApiErrorBody } from "@/types/api";
 
 export const apiClient = axios.create({
@@ -24,8 +25,10 @@ apiClient.interceptors.response.use(
   (error: AxiosError<ApiErrorBody>) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
+      useCartStore.getState().reset();
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+        const callbackUrl = encodeURIComponent(window.location.pathname);
+        window.location.href = `/login?callbackUrl=${callbackUrl}`;
       }
     }
     return Promise.reject(error);

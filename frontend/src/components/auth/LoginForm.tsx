@@ -13,11 +13,13 @@ import { getApiErrorMessage } from "@/lib/apiClient";
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const fetchCart = useCartStore((s) => s.fetchCart);
 
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -42,7 +44,12 @@ export function LoginForm() {
         tokenType: auth.tokenType,
       });
 
-      const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+      if (auth.user.role !== "ROLE_ADMIN") {
+        await fetchCart();
+      }
+
+      const defaultRedirect = auth.user.role === "ROLE_ADMIN" ? "/admin" : "/sneakers";
+      const callbackUrl = searchParams.get("callbackUrl") ?? defaultRedirect;
       router.replace(callbackUrl);
       router.refresh();
     } catch (error) {

@@ -13,10 +13,12 @@ import { getApiErrorMessage } from "@/lib/apiClient";
 import { registerSchema, type RegisterFormValues } from "@/lib/validations/auth";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 
 export function RegisterForm() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const fetchCart = useCartStore((s) => s.fetchCart);
 
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -53,7 +55,11 @@ export function RegisterForm() {
         tokenType: auth.tokenType,
       });
 
-      router.replace("/dashboard");
+      if (auth.user.role !== "ROLE_ADMIN") {
+        await fetchCart();
+      }
+
+      router.replace("/sneakers");
       router.refresh();
     } catch (error) {
       setServerError(getApiErrorMessage(error, "Registration failed"));
