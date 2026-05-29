@@ -4,3 +4,6 @@ uploads/
 *.iml
 .env
 *.log
+src/main/resources/application-local.properties
+frontend/.next/
+frontend/node_modules/

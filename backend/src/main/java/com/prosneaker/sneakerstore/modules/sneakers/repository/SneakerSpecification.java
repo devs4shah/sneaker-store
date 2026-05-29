@@ -14,11 +14,14 @@ public final class SneakerSpecification {
 
     public static Specification<Sneaker> fetchDetails() {
         return (root, query, cb) -> {
-            if (query != null) {
+            // Fetch joins break Hibernate 6 count queries used for pagination.
+            // Only apply eager fetch on the data query; images load via @BatchSize.
+            if (query != null
+                    && !Long.class.equals(query.getResultType())
+                    && !long.class.equals(query.getResultType())) {
                 query.distinct(true);
+                root.fetch("category", JoinType.LEFT);
             }
-            root.fetch("category", JoinType.LEFT);
-            root.fetch("images", JoinType.LEFT);
             return cb.conjunction();
         };
     }
