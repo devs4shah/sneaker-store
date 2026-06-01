@@ -10,13 +10,18 @@ import { checkoutSchema, type CheckoutFormValues } from "@/lib/validations/check
 interface CheckoutFormProps {
   onSubmit: (values: CheckoutFormValues) => Promise<void>;
   serverError: string | null;
+  isProcessing?: boolean;
 }
 
-export function CheckoutForm({ onSubmit, serverError }: CheckoutFormProps) {
+export function CheckoutForm({
+  onSubmit,
+  serverError,
+  isProcessing = false,
+}: CheckoutFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
@@ -65,7 +70,7 @@ export function CheckoutForm({ onSubmit, serverError }: CheckoutFormProps) {
         {...register("country")}
       />
 
-      <SubmitButton label="Place order" isLoading={isSubmitting} />
+      <SubmitButton label="Pay now" isLoading={isProcessing} />
     </form>
   );
 }

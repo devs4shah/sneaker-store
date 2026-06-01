@@ -1,7 +1,11 @@
-export function formatPrice(amount: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
+import { STORE_CURRENCY, STORE_LOCALE } from "@/lib/constants";
+
+export function formatPrice(amount: number, currency = STORE_CURRENCY) {
+  return new Intl.NumberFormat(STORE_LOCALE, {
     style: "currency",
     currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 

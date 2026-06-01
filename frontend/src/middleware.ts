@@ -81,7 +81,7 @@ export const config = {
 
     "/cart",
 
-    "/checkout",
+    "/checkout/:path*",
 
   ],
 

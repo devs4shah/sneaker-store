@@ -94,7 +94,7 @@ export function ProductFilters({
 
         <div>
           <label htmlFor="minPrice" className={labelClass}>
-            Min price
+            Min price (₹)
           </label>
           <input
             id="minPrice"
@@ -110,7 +110,7 @@ export function ProductFilters({
 
         <div>
           <label htmlFor="maxPrice" className={labelClass}>
-            Max price
+            Max price (₹)
           </label>
           <input
             id="maxPrice"
