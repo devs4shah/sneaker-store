@@ -1,0 +1,7 @@
+# Copy this file to application-local.properties (gitignored) and fill from Razorpay Dashboard → API Keys → Test mode.
+# Key id must match frontend .env.local → NEXT_PUBLIC_RAZORPAY_KEY
+# Secret is shown only once when you generate keys — copy it immediately.
+
+razorpay.key=rzp_test_your_key_id_here
+razorpay.secret=your_key_secret_here
+razorpay.currency=INR
