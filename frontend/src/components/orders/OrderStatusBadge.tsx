@@ -8,6 +8,7 @@ interface OrderStatusBadgeProps {
 
 const orderStatusStyles: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
+  PROCESSING: "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
   CONFIRMED: "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
   SHIPPED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300",
   DELIVERED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300",
