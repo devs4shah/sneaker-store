@@ -56,6 +56,14 @@ export function StoreHeader() {
               >
                 Dashboard
               </Link>
+              {!isAdmin ? (
+                <Link
+                  href="/orders"
+                  className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                >
+                  My Orders
+                </Link>
+              ) : null}
               {isAdmin ? (
                 <Link
                   href="/admin"

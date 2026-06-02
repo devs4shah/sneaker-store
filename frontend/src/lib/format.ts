@@ -1,5 +1,12 @@
 import { STORE_CURRENCY, STORE_LOCALE } from "@/lib/constants";
 
+export function formatDateTime(iso: string) {
+  return new Intl.DateTimeFormat(STORE_LOCALE, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
 export function formatPrice(amount: number, currency = STORE_CURRENCY) {
   return new Intl.NumberFormat(STORE_LOCALE, {
     style: "currency",

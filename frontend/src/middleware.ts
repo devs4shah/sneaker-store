@@ -8,7 +8,7 @@ import { ADMIN_ROLE, AUTH_ROLE_COOKIE, AUTH_TOKEN_COOKIE } from "@/lib/constants
 
 const AUTH_ROUTES = ["/login", "/register"];
 
-const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/cart", "/checkout"];
+const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/cart", "/checkout", "/orders"];
 
 
 
@@ -82,6 +82,8 @@ export const config = {
     "/cart",
 
     "/checkout/:path*",
+
+    "/orders",
 
   ],
 

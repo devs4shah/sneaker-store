@@ -1,3 +1,17 @@
+import type { PageResponse } from "@/types/product";
+
+export type { PageResponse };
+
+export interface OrderListItem {
+  id: string;
+  orderNumber: string;
+  totalAmount: number;
+  orderStatus: string;
+  paymentStatus: string;
+  totalQuantity: number;
+  createdAt: string;
+}
+
 export interface CreateOrderRequest {
   shippingAddress: string;
   city: string;
