@@ -81,7 +81,7 @@ public class PaymentService {
         order.setRazorpayPaymentId(request.getRazorpayPaymentId());
         order.setPaymentStatus(PaymentStatus.PAID);
         if (order.getOrderStatus() == OrderStatus.PENDING) {
-            order.setOrderStatus(OrderStatus.CONFIRMED);
+            order.setOrderStatus(OrderStatus.PROCESSING);
         }
 
         Order saved = orderRepository.save(order);

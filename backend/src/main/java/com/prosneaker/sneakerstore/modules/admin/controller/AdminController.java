@@ -2,10 +2,12 @@ package com.prosneaker.sneakerstore.modules.admin.controller;
 
 import com.prosneaker.sneakerstore.modules.common.dto.ApiResponse;
 import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
-import com.prosneaker.sneakerstore.modules.orders.dto.OrderListResponse;
+import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderDetailResponse;
+import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.UpdateOrderStatusRequest;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
+import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
 import com.prosneaker.sneakerstore.modules.orders.service.OrderService;
 import com.prosneaker.sneakerstore.modules.users.dto.UserResponse;
 import com.prosneaker.sneakerstore.modules.users.service.UserService;
@@ -39,21 +41,22 @@ public class AdminController {
     }
 
     @GetMapping("/orders")
-    public ApiResponse<PageResponse<OrderListResponse>> listOrders(
+    public ApiResponse<PageResponse<AdminOrderListResponse>> listOrders(
             @RequestParam(required = false) OrderStatus orderStatus,
+            @RequestParam(required = false) PaymentStatus paymentStatus,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ApiResponse.success(orderService.getAllOrders(orderStatus, pageable));
+        return ApiResponse.success(orderService.getAllOrders(orderStatus, paymentStatus, pageable));
     }
 
-    @GetMapping("/orders/{id}")
-    public ApiResponse<OrderResponse> getOrder(@PathVariable UUID id) {
-        return ApiResponse.success(orderService.getOrderById(id));
+    @GetMapping("/orders/{orderId}")
+    public ApiResponse<AdminOrderDetailResponse> getOrder(@PathVariable UUID orderId) {
+        return ApiResponse.success(orderService.getOrderById(orderId));
     }
 
-    @PatchMapping("/orders/{id}/status")
+    @PatchMapping("/orders/{orderId}/status")
     public ApiResponse<OrderResponse> updateOrderStatus(
-            @PathVariable UUID id,
+            @PathVariable UUID orderId,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
-        return ApiResponse.success("Order status updated", orderService.updateOrderStatus(id, request));
+        return ApiResponse.success("Order status updated", orderService.updateOrderStatus(orderId, request));
     }
 }

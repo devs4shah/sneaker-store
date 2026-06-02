@@ -58,6 +58,31 @@ public class DatabaseSchemaMigration {
                     "ALTER TABLE orders ADD COLUMN total_quantity INTEGER NOT NULL DEFAULT 0");
             log.info("Added orders.total_quantity column");
         }
+
+        if (!columnExists("orders", "razorpay_order_id")) {
+            jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN razorpay_order_id VARCHAR(64)");
+            log.info("Added orders.razorpay_order_id column");
+        }
+
+        if (!columnExists("orders", "razorpay_payment_id")) {
+            jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN razorpay_payment_id VARCHAR(64)");
+            log.info("Added orders.razorpay_payment_id column");
+        }
+
+        // Align old enum value to latest domain model.
+        // Existing DB check constraint may still allow CONFIRMED but reject PROCESSING,
+        // so temporarily drop/recreate it during migration.
+        jdbcTemplate.execute("ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_order_status_check");
+        jdbcTemplate.execute("""
+                UPDATE orders
+                SET order_status = 'PROCESSING'
+                WHERE order_status = 'CONFIRMED'
+                """);
+        jdbcTemplate.execute("""
+                ALTER TABLE orders
+                ADD CONSTRAINT orders_order_status_check
+                CHECK (order_status IN ('PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'))
+                """);
     }
 
     private void migrateOrderItemsTable() {

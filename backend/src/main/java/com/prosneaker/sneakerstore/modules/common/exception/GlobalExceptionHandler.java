@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,6 +36,23 @@ public class GlobalExceptionHandler {
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
+        return ResponseEntity
+                .badRequest()
+                .body(ApiResponse.<Map<String, String>>builder()
+                        .success(false)
+                        .message(ErrorCode.VALIDATION_ERROR.getDefaultMessage())
+                        .data(errors)
+                        .build());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Map<String, String> errors = new HashMap<>();
+        String fieldName = ex.getName() != null ? ex.getName() : "parameter";
+        String expectedType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "valid type";
+        String value = ex.getValue() != null ? ex.getValue().toString() : "null";
+        errors.put(fieldName, "Invalid value '" + value + "'. Expected " + expectedType + ".");
+
         return ResponseEntity
                 .badRequest()
                 .body(ApiResponse.<Map<String, String>>builder()

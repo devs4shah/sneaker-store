@@ -7,6 +7,9 @@ import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
 import com.prosneaker.sneakerstore.modules.common.exception.BusinessException;
 import com.prosneaker.sneakerstore.modules.common.exception.ErrorCode;
 import com.prosneaker.sneakerstore.modules.common.util.PageMapper;
+import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderDetailResponse;
+import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderListResponse;
+import com.prosneaker.sneakerstore.modules.admin.mapper.AdminOrderMapper;
 import com.prosneaker.sneakerstore.modules.orders.dto.CreateOrderRequest;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
@@ -41,6 +44,7 @@ public class OrderService {
     private final UserDetailsServiceImpl userDetailsService;
     private final OrderNumberGenerator orderNumberGenerator;
     private final OrderStatusTransitionValidator statusTransitionValidator;
+    private final AdminOrderMapper adminOrderMapper;
 
     @Transactional
     public OrderResponse checkout(String email, CreateOrderRequest request) {
@@ -124,18 +128,19 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<OrderListResponse> getAllOrders(OrderStatus orderStatus, Pageable pageable) {
-        Page<Order> page = orderStatus != null
-                ? orderRepository.findByOrderStatusOrderByCreatedAtDesc(orderStatus, pageable)
-                : orderRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return PageMapper.toPageResponse(page, orderMapper::toListResponse);
+    public PageResponse<AdminOrderListResponse> getAllOrders(
+            OrderStatus orderStatus,
+            PaymentStatus paymentStatus,
+            Pageable pageable) {
+        Page<Order> page = orderRepository.findForAdmin(orderStatus, paymentStatus, pageable);
+        return PageMapper.toPageResponse(page, adminOrderMapper::toListResponse);
     }
 
     @Transactional(readOnly = true)
-    public OrderResponse getOrderById(UUID orderId) {
-        Order order = orderRepository.findByIdWithItems(orderId)
+    public AdminOrderDetailResponse getOrderById(UUID orderId) {
+        Order order = orderRepository.findByIdForAdminDetails(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
-        return orderMapper.toResponse(order);
+        return adminOrderMapper.toDetailResponse(order);
     }
 
     @Transactional
@@ -144,7 +149,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
 
         OrderStatus currentStatus = order.getOrderStatus();
-        OrderStatus newStatus = request.getOrderStatus();
+        OrderStatus newStatus = request.getStatus();
         statusTransitionValidator.validateTransition(currentStatus, newStatus);
 
         if (newStatus == OrderStatus.CANCELLED && currentStatus != OrderStatus.CANCELLED) {

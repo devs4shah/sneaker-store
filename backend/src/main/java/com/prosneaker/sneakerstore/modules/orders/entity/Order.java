@@ -46,6 +46,12 @@ public class Order extends BaseEntity {
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "razorpay_order_id", length = 64)
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id", length = 64)
+    private String razorpayPaymentId;
+
     @Column(nullable = false)
     private BigDecimal totalAmount;
 
