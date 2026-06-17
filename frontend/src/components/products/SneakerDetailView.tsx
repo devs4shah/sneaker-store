@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ImageGallery } from "@/components/products/ImageGallery";
+import { ProductReviewsSection } from "@/components/products/ProductReviewsSection";
 import { StockBadge } from "@/components/products/StockBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Alert } from "@/components/ui/Alert";
@@ -211,6 +212,8 @@ export function SneakerDetailView({ sneakerId }: SneakerDetailViewProps) {
           </div>
         </div>
       </div>
+
+      <ProductReviewsSection sneakerId={sneakerId} />
     </div>
   );
 }

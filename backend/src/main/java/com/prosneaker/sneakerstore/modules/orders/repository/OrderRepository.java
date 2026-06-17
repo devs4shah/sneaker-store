@@ -54,4 +54,15 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             WHERE o.id = :id
             """)
     Optional<Order> findByIdForAdminDetails(@Param("id") UUID id);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END
+            FROM OrderItem oi
+            JOIN oi.order o
+            WHERE o.user.id = :userId
+              AND oi.sneaker.id = :sneakerId
+              AND o.paymentStatus = com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus.PAID
+              AND o.orderStatus <> com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus.CANCELLED
+            """)
+    boolean hasUserPurchasedSneaker(@Param("userId") UUID userId, @Param("sneakerId") UUID sneakerId);
 }
