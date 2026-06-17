@@ -1,7 +1,23 @@
-# Copy this file to application-local.properties (gitignored) and fill from Razorpay Dashboard → API Keys → Test mode.
-# Key id must match frontend .env.local → NEXT_PUBLIC_RAZORPAY_KEY
-# Secret is shown only once when you generate keys — copy it immediately.
+# Copy this file to application-local.properties (gitignored) and fill in your values.
+# Run with profile "local": mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Or use scripts/run-dev.cmd / run-dev.ps1
 
+# Razorpay — Dashboard → API Keys → Test mode
+# Key id must match frontend .env.local → NEXT_PUBLIC_RAZORPAY_KEY
 razorpay.key=rzp_test_your_key_id_here
 razorpay.secret=your_key_secret_here
 razorpay.currency=INR
+
+# Brevo SMTP — Dashboard → SMTP & API → SMTP keys
+# Use the SMTP login and SMTP key (not the REST API v3 key).
+# app.mail.from must be a verified sender in Brevo.
+spring.mail.host=smtp-relay.brevo.com
+spring.mail.port=587
+spring.mail.username=your_brevo_smtp_login
+spring.mail.password=your_brevo_smtp_key
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.default-encoding=UTF-8
+
+app.mail.from=noreply@yourdomain.com
+app.mail.test-recipient=admin@yourdomain.com

@@ -18,6 +18,8 @@ import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
+import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
 import com.prosneaker.sneakerstore.modules.orders.repository.OrderRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
@@ -45,6 +47,7 @@ public class OrderService {
     private final OrderNumberGenerator orderNumberGenerator;
     private final OrderStatusTransitionValidator statusTransitionValidator;
     private final AdminOrderMapper adminOrderMapper;
+    private final EmailService emailService;
 
     @Transactional
     public OrderResponse checkout(String email, CreateOrderRequest request) {
@@ -109,6 +112,7 @@ public class OrderService {
         cartService.clearCart(email);
 
         Order savedOrder = orderRepository.findByIdWithItems(order.getId()).orElse(order);
+        emailService.sendOrderPlacedEmail(OrderEmailContextMapper.from(savedOrder));
         return orderMapper.toResponse(savedOrder);
     }
 
@@ -158,7 +162,13 @@ public class OrderService {
         }
 
         order.setOrderStatus(newStatus);
-        return orderMapper.toResponse(orderRepository.save(order));
+        Order saved = orderRepository.save(order);
+        if (newStatus == OrderStatus.SHIPPED) {
+            emailService.sendOrderShippedEmail(OrderEmailContextMapper.from(saved));
+        } else if (newStatus == OrderStatus.DELIVERED) {
+            emailService.sendOrderDeliveredEmail(OrderEmailContextMapper.from(saved));
+        }
+        return orderMapper.toResponse(saved);
     }
 
     private void restoreStock(Order order) {

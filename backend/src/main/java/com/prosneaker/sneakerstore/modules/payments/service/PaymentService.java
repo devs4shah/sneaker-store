@@ -6,6 +6,8 @@ import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
+import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
 import com.prosneaker.sneakerstore.modules.orders.repository.OrderRepository;
 import com.prosneaker.sneakerstore.modules.payments.dto.PaymentFailureRequest;
@@ -27,6 +29,7 @@ public class PaymentService {
     private final OrderMapper orderMapper;
     private final UserDetailsServiceImpl userDetailsService;
     private final RazorpayGatewayService razorpayGatewayService;
+    private final EmailService emailService;
 
     @Transactional
     public RazorpayOrderResponse createRazorpayOrder(String email, UUID orderId) {
@@ -85,8 +88,9 @@ public class PaymentService {
         }
 
         Order saved = orderRepository.save(order);
-        return orderMapper.toResponse(
-                orderRepository.findByIdWithItems(saved.getId()).orElse(saved));
+        Order savedWithItems = orderRepository.findByIdWithItems(saved.getId()).orElse(saved);
+        emailService.sendPaymentSuccessEmail(OrderEmailContextMapper.from(savedWithItems));
+        return orderMapper.toResponse(savedWithItems);
     }
 
     @Transactional

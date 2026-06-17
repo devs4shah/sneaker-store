@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment received – ProSneaker</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#18181b;padding:28px 32px;text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">ProSneaker</div>
+              <div style="font-size:13px;color:#a1a1aa;margin-top:6px;">Premium sneakers, delivered fast</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 12px;font-size:22px;color:#18181b;">Payment confirmed, {{customerName}}!</h1>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#52525b;">
+                Your payment was successful. We are preparing your order and will update you when it ships.
+              </p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e4e4e7;border-radius:8px;">
+                <tr><td style="padding:12px 16px;font-size:13px;color:#71717a;border-bottom:1px solid #e4e4e7;">Order number</td><td style="padding:12px 16px;font-size:14px;font-weight:600;text-align:right;border-bottom:1px solid #e4e4e7;">{{orderNumber}}</td></tr>
+                <tr><td style="padding:12px 16px;font-size:13px;color:#71717a;border-bottom:1px solid #e4e4e7;">Order ID</td><td style="padding:12px 16px;font-size:12px;text-align:right;border-bottom:1px solid #e4e4e7;word-break:break-all;">{{orderId}}</td></tr>
+                <tr><td style="padding:12px 16px;font-size:13px;color:#71717a;border-bottom:1px solid #e4e4e7;">Amount paid</td><td style="padding:12px 16px;font-size:14px;font-weight:600;text-align:right;border-bottom:1px solid #e4e4e7;">{{orderAmount}}</td></tr>
+                <tr><td style="padding:12px 16px;font-size:13px;color:#71717a;border-bottom:1px solid #e4e4e7;">Order status</td><td style="padding:12px 16px;font-size:14px;text-align:right;border-bottom:1px solid #e4e4e7;text-transform:capitalize;">{{orderStatus}}</td></tr>
+                <tr><td style="padding:12px 16px;font-size:13px;color:#71717a;">Payment status</td><td style="padding:12px 16px;font-size:14px;text-align:right;text-transform:capitalize;">{{paymentStatus}}</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;background:#fafafa;text-align:center;font-size:12px;color:#a1a1aa;">
+              &copy; {{year}} ProSneaker. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

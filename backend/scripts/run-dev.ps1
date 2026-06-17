@@ -21,7 +21,7 @@ Write-Host "Starting backend from $backendRoot"
 Write-Host "Razorpay keys load from application-local.properties (profile: local)"
 Write-Host ""
 
-& mvn spring-boot:run
+& mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Backend exited with code $LASTEXITCODE" -ForegroundColor Red
     exit $LASTEXITCODE
