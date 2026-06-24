@@ -14,6 +14,7 @@ import {
   processOrderPayment,
 } from "@/lib/checkoutPayment";
 import { formatPrice } from "@/lib/format";
+import { getOrderPayableTotal } from "@/lib/orderAmount";
 import { orderService } from "@/services/orderService";
 import { paymentService } from "@/services/paymentService";
 import { useAuthStore } from "@/store/authStore";
@@ -128,7 +129,7 @@ export function PaymentFailureView() {
           <p className="mt-4 text-gray-600 dark:text-zinc-400">
             Order{" "}
             <span className="font-semibold text-gray-900 dark:text-zinc-100">{order.orderNumber}</span>{" "}
-            · {formatPrice(order.totalAmount)}
+            · {formatPrice(getOrderPayableTotal(order))}
           </p>
         </div>
 

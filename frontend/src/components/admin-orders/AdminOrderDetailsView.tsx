@@ -170,8 +170,17 @@ export function AdminOrderDetailsView() {
             <p className="text-xs text-gray-500 dark:text-zinc-400">
               Razorpay Payment: {order.payment.razorpayPaymentId ?? "—"}
             </p>
+            {order.appliedCoupons && order.appliedCoupons.length > 0 ? (
+              <div className="pt-2 space-y-1">
+                {order.appliedCoupons.map((coupon) => (
+                  <p key={coupon.couponCode} className="text-xs text-gray-500 dark:text-zinc-400">
+                    {coupon.couponCode}: −{formatPrice(coupon.discountAmount)}
+                  </p>
+                ))}
+              </div>
+            ) : null}
             <p className="pt-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-              {formatPrice(order.totalAmount)}
+              {formatPrice(order.finalAmount ?? order.totalAmount)}
             </p>
           </div>
         </div>

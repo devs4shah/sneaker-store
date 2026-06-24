@@ -1,13 +1,16 @@
 package com.prosneaker.sneakerstore.modules.orders.mapper;
 
+import com.prosneaker.sneakerstore.modules.orders.dto.OrderCouponResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderItemResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
+import com.prosneaker.sneakerstore.modules.orders.entity.OrderCoupon;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 
 @Component
 public class OrderMapper {
@@ -17,6 +20,12 @@ public class OrderMapper {
                 .id(order.getId())
                 .orderNumber(order.getOrderNumber())
                 .totalAmount(order.getTotalAmount())
+                .appliedCoupons(order.getAppliedCoupons().stream()
+                        .sorted(Comparator.comparingInt(OrderCoupon::getSortOrder))
+                        .map(this::toCouponResponse)
+                        .toList())
+                .discountAmount(order.getDiscountAmount())
+                .finalAmount(order.getFinalAmount())
                 .orderStatus(order.getOrderStatus())
                 .paymentStatus(order.getPaymentStatus())
                 .shippingAddress(order.getShippingAddress())
@@ -38,6 +47,13 @@ public class OrderMapper {
                 .paymentStatus(order.getPaymentStatus())
                 .totalQuantity(order.getTotalQuantity())
                 .createdAt(order.getCreatedAt())
+                .build();
+    }
+
+    private OrderCouponResponse toCouponResponse(OrderCoupon orderCoupon) {
+        return OrderCouponResponse.builder()
+                .couponCode(orderCoupon.getCouponCode())
+                .discountAmount(orderCoupon.getDiscountAmount())
                 .build();
     }
 

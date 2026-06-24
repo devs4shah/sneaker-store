@@ -17,6 +17,9 @@ public class OrderResponse {
     private final UUID id;
     private final String orderNumber;
     private final BigDecimal totalAmount;
+    private final List<OrderCouponResponse> appliedCoupons;
+    private final BigDecimal discountAmount;
+    private final BigDecimal finalAmount;
     private final OrderStatus orderStatus;
     private final PaymentStatus paymentStatus;
     private final String shippingAddress;

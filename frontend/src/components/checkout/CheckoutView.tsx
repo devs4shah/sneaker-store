@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CartSummary } from "@/components/cart/CartSummary";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
+import { CouponSection } from "@/components/checkout/CouponSection";
 import { PaymentStatusOverlay } from "@/components/checkout/PaymentStatusOverlay";
 import { SneakerImage } from "@/components/products/SneakerImage";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,10 +20,12 @@ import {
 import { formatPrice } from "@/lib/format";
 import type { CheckoutFormValues } from "@/lib/validations/checkout";
 import { orderService } from "@/services/orderService";
+import { couponService } from "@/services/couponService";
 import { paymentService } from "@/services/paymentService";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import type { Order } from "@/types/order";
+import type { AppliedCouponsState } from "@/types/coupon";
 import type { PaymentPhase } from "@/types/payment";
 
 export function CheckoutView() {
@@ -38,6 +41,7 @@ export function CheckoutView() {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [paymentPhase, setPaymentPhase] = useState<PaymentPhase>("idle");
+  const [appliedCoupons, setAppliedCoupons] = useState<AppliedCouponsState | null>(null);
 
   useEffect(() => {
     if (isAdmin) {
@@ -71,7 +75,32 @@ export function CheckoutView() {
     let createdOrder: Order | null = null;
 
     try {
-      createdOrder = await orderService.checkout(values);
+      let couponCodes: string[] = [];
+
+      if (appliedCoupons && appliedCoupons.coupons.length > 0) {
+        const validation = await couponService.validateCoupons({
+          couponCodes: appliedCoupons.coupons.map((coupon) => coupon.couponCode),
+          cartTotal: subtotal,
+        });
+
+        if (!validation.valid) {
+          setAppliedCoupons(null);
+          setServerError(validation.message ?? "Coupons are no longer valid. Please review and try again.");
+          return;
+        }
+
+        setAppliedCoupons({
+          coupons: validation.appliedCoupons,
+          totalDiscount: validation.discount,
+          finalAmount: validation.finalAmount,
+        });
+        couponCodes = validation.appliedCoupons.map((coupon) => coupon.couponCode);
+      }
+
+      createdOrder = await orderService.checkout({
+        ...values,
+        couponCodes,
+      });
       applyCart({
         id: cart?.id ?? "",
         items: [],
@@ -125,6 +154,9 @@ export function CheckoutView() {
     );
   }
 
+  const totalDiscount = appliedCoupons?.totalDiscount ?? 0;
+  const finalTotal = appliedCoupons?.finalAmount ?? subtotal;
+
   return (
     <>
       <PaymentStatusOverlay phase={paymentPhase} />
@@ -147,6 +179,13 @@ export function CheckoutView() {
           </section>
 
           <div className="space-y-6">
+            <CouponSection
+              cartTotal={subtotal}
+              appliedCoupons={appliedCoupons}
+              onApply={setAppliedCoupons}
+              disabled={isProcessing}
+            />
+
             <aside className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">Items</h2>
               <ul className="mt-4 space-y-4">
@@ -171,10 +210,13 @@ export function CheckoutView() {
               </ul>
             </aside>
 
-            <CartSummary
+            <CheckoutOrderSummary
               subtotal={subtotal}
               totalItems={totalItems}
-              showCheckoutButton={false}
+              appliedCoupons={appliedCoupons?.coupons}
+              totalDiscount={totalDiscount}
+              finalTotal={finalTotal}
+              isLoading={isLoading}
             />
           </div>
         </div>

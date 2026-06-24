@@ -3,10 +3,12 @@ package com.prosneaker.sneakerstore.modules.admin.mapper;
 import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderDetailResponse;
 import com.prosneaker.sneakerstore.modules.admin.dto.AdminOrderListResponse;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
+import com.prosneaker.sneakerstore.modules.orders.entity.OrderCoupon;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 
 @Component
 public class AdminOrderMapper {
@@ -36,6 +38,12 @@ public class AdminOrderMapper {
                         .build())
                 .items(order.getItems().stream().map(this::toItemInfo).toList())
                 .totalAmount(order.getTotalAmount())
+                .appliedCoupons(order.getAppliedCoupons().stream()
+                        .sorted(Comparator.comparingInt(OrderCoupon::getSortOrder))
+                        .map(this::toCouponInfo)
+                        .toList())
+                .discountAmount(order.getDiscountAmount())
+                .finalAmount(order.getFinalAmount())
                 .totalQuantity(order.getTotalQuantity())
                 .payment(AdminOrderDetailResponse.PaymentInfo.builder()
                         .paymentStatus(order.getPaymentStatus())
@@ -48,6 +56,13 @@ public class AdminOrderMapper {
                 .postalCode(order.getPostalCode())
                 .country(order.getCountry())
                 .createdAt(order.getCreatedAt())
+                .build();
+    }
+
+    private AdminOrderDetailResponse.CouponInfo toCouponInfo(OrderCoupon orderCoupon) {
+        return AdminOrderDetailResponse.CouponInfo.builder()
+                .couponCode(orderCoupon.getCouponCode())
+                .discountAmount(orderCoupon.getDiscountAmount())
                 .build();
     }
 

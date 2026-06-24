@@ -1,6 +1,9 @@
 package com.prosneaker.sneakerstore.config;
 
 import com.prosneaker.sneakerstore.config.storage.ImageStorageProperties;
+import com.prosneaker.sneakerstore.modules.coupons.entity.Coupon;
+import com.prosneaker.sneakerstore.modules.coupons.entity.CouponType;
+import com.prosneaker.sneakerstore.modules.coupons.repository.CouponRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Category;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Gender;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
@@ -20,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -41,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final SneakerRepository sneakerRepository;
+    private final CouponRepository couponRepository;
     private final ImageStorageProperties imageStorageProperties;
 
     @Override
@@ -62,6 +68,41 @@ public class DataInitializer implements CommandLineRunner {
         if (!dummySneakerSeedCompleted()) {
             ensureMinimumCatalogSize(12);
         }
+
+        seedCouponsIfMissing();
+    }
+
+    private void seedCouponsIfMissing() {
+        if (couponRepository.existsByCodeIgnoreCase("WELCOME10")) {
+            return;
+        }
+
+        Instant now = Instant.now();
+
+        couponRepository.save(Coupon.builder()
+                .code("WELCOME10")
+                .couponType(CouponType.PERCENTAGE)
+                .discountValue(new BigDecimal("10.00"))
+                .minimumOrderAmount(BigDecimal.ZERO)
+                .maximumDiscount(new BigDecimal("500.00"))
+                .usageLimit(100)
+                .validFrom(now.minus(1, ChronoUnit.DAYS))
+                .validUntil(now.plus(365, ChronoUnit.DAYS))
+                .active(true)
+                .build());
+
+        couponRepository.save(Coupon.builder()
+                .code("FLAT50")
+                .couponType(CouponType.FIXED)
+                .discountValue(new BigDecimal("50.00"))
+                .minimumOrderAmount(new BigDecimal("200.00"))
+                .usageLimit(null)
+                .validFrom(now.minus(1, ChronoUnit.DAYS))
+                .validUntil(now.plus(365, ChronoUnit.DAYS))
+                .active(true)
+                .build());
+
+        log.info("Sample coupons seeded (WELCOME10, FLAT50)");
     }
 
     private boolean dummySneakerSeedCompleted() {

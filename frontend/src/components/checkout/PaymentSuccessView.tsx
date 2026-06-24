@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { getApiErrorMessage } from "@/lib/apiClient";
 import { formatPrice } from "@/lib/format";
+import { getOrderDiscount, getOrderPayableTotal, hasOrderDiscount } from "@/lib/orderAmount";
 import { orderService } from "@/services/orderService";
 import type { Order } from "@/types/order";
 
@@ -56,6 +57,9 @@ export function PaymentSuccessView() {
   }
 
   const isPaid = order.paymentStatus === "PAID";
+  const amountPaid = getOrderPayableTotal(order);
+  const discount = getOrderDiscount(order);
+  const showDiscount = hasOrderDiscount(order);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 text-center">
@@ -82,9 +86,35 @@ export function PaymentSuccessView() {
           Order{" "}
           <span className="font-semibold text-gray-900 dark:text-zinc-100">{order.orderNumber}</span>
         </p>
-        <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-zinc-100">
-          {formatPrice(order.totalAmount)}
-        </p>
+
+        <div className="mx-auto mt-6 max-w-sm space-y-2 text-left text-sm">
+          {showDiscount ? (
+            <>
+              <div className="flex justify-between text-gray-600 dark:text-zinc-400">
+                <span>Subtotal</span>
+                <span>{formatPrice(order.totalAmount)}</span>
+              </div>
+              {order.appliedCoupons?.map((coupon) => (
+                <div
+                  key={coupon.couponCode}
+                  className="flex justify-between text-emerald-700 dark:text-emerald-400"
+                >
+                  <span>{coupon.couponCode}</span>
+                  <span>-{formatPrice(coupon.discountAmount)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between border-t border-emerald-200/80 pt-2 font-medium text-emerald-800 dark:border-emerald-900/50 dark:text-emerald-300">
+                <span>You saved</span>
+                <span>{formatPrice(discount)}</span>
+              </div>
+            </>
+          ) : null}
+          <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900 dark:border-zinc-700 dark:text-zinc-100">
+            <span>Amount paid</span>
+            <span>{formatPrice(amountPaid)}</span>
+          </div>
+        </div>
+
         <p className="mt-4 text-sm text-gray-500 dark:text-zinc-400">
           Shipping to {order.shippingAddress}, {order.city}, {order.postalCode}, {order.country}
         </p>
@@ -103,10 +133,10 @@ export function PaymentSuccessView() {
           Continue shopping
         </Link>
         <Link
-          href="/dashboard"
+          href="/orders"
           className="inline-flex rounded-lg border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
-          View dashboard
+          View my orders
         </Link>
       </div>
     </div>

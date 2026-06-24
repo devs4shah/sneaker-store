@@ -6,6 +6,9 @@ import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.orders.service.OrderCouponApplier;
+import com.prosneaker.sneakerstore.modules.coupons.dto.AppliedCouponResult;
+import com.prosneaker.sneakerstore.modules.coupons.service.CouponService;
 import com.prosneaker.sneakerstore.modules.inventory.service.InventoryService;
 import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
 import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
@@ -32,6 +35,7 @@ public class PaymentService {
     private final RazorpayGatewayService razorpayGatewayService;
     private final EmailService emailService;
     private final InventoryService inventoryService;
+    private final CouponService couponService;
 
     @Transactional
     public RazorpayOrderResponse createRazorpayOrder(String email, UUID orderId) {
@@ -47,9 +51,14 @@ public class PaymentService {
 
         inventoryService.validateOrderStock(order);
 
+        AppliedCouponResult appliedCoupons = couponService.revalidateAndApplyForPayment(
+                OrderCouponApplier.extractCouponCodes(order),
+                order.getTotalAmount());
+        OrderCouponApplier.applyToOrder(order, appliedCoupons);
+
         RazorpayGatewayService.CreatedRazorpayOrder created = razorpayGatewayService.createOrder(
                 order.getOrderNumber(),
-                order.getTotalAmount());
+                order.getFinalAmount());
 
         order.setRazorpayOrderId(created.razorpayOrderId());
         if (order.getPaymentStatus() == PaymentStatus.FAILED) {
@@ -94,8 +103,11 @@ public class PaymentService {
             order.setOrderStatus(OrderStatus.PROCESSING);
         }
 
+        couponService.incrementUsageAfterPayment(OrderCouponApplier.extractCouponCodes(order));
+
         Order saved = orderRepository.save(order);
         Order savedWithItems = orderRepository.findByIdWithItems(saved.getId()).orElse(saved);
+        OrderCouponApplier.initializeAppliedCoupons(savedWithItems);
         emailService.sendPaymentSuccessEmail(OrderEmailContextMapper.from(savedWithItems));
         return orderMapper.toResponse(savedWithItems);
     }
@@ -110,13 +122,16 @@ public class PaymentService {
 
         order.setPaymentStatus(PaymentStatus.FAILED);
         Order saved = orderRepository.save(order);
-        return orderMapper.toResponse(
-                orderRepository.findByIdWithItems(saved.getId()).orElse(saved));
+        Order reloaded = orderRepository.findByIdWithItems(saved.getId()).orElse(saved);
+        OrderCouponApplier.initializeAppliedCoupons(reloaded);
+        return orderMapper.toResponse(reloaded);
     }
 
     private Order getOwnedOrder(String email, UUID orderId) {
         User user = userDetailsService.getUserByEmail(email);
-        return orderRepository.findByIdAndUserIdWithItems(orderId, user.getId())
+        Order order = orderRepository.findByIdAndUserIdWithItems(orderId, user.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
+        OrderCouponApplier.initializeAppliedCoupons(order);
+        return order;
     }
 }

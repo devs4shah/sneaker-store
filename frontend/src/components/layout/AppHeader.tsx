@@ -59,6 +59,12 @@ export function AppHeader() {
               >
                 Inventory
               </Link>
+              <Link
+                href="/admin/coupons"
+                className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                Coupons
+              </Link>
             </>
           ) : null}
           <span className="hidden text-gray-500 dark:text-zinc-400 sm:inline">

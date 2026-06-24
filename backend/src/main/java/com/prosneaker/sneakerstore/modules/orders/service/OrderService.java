@@ -18,6 +18,8 @@ import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.coupons.dto.AppliedCouponResult;
+import com.prosneaker.sneakerstore.modules.coupons.service.CouponService;
 import com.prosneaker.sneakerstore.modules.inventory.service.InventoryService;
 import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
 import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
@@ -50,6 +52,7 @@ public class OrderService {
     private final AdminOrderMapper adminOrderMapper;
     private final EmailService emailService;
     private final InventoryService inventoryService;
+    private final CouponService couponService;
 
     @Transactional
     public OrderResponse checkout(String email, CreateOrderRequest request) {
@@ -100,15 +103,18 @@ public class OrderService {
             totalQuantity += cartItem.getQuantity();
         }
 
+        AppliedCouponResult appliedCoupons = couponService.applyCouponsToOrder(request.getCouponCodes(), totalAmount);
+
         order.setTotalAmount(totalAmount);
+        OrderCouponApplier.applyToOrder(order, appliedCoupons);
         order.setTotalQuantity(totalQuantity);
         order = orderRepository.save(order);
 
         cartService.clearCart(email);
 
-        Order savedOrder = orderRepository.findByIdWithItems(order.getId()).orElse(order);
-        emailService.sendOrderPlacedEmail(OrderEmailContextMapper.from(savedOrder));
-        return orderMapper.toResponse(savedOrder);
+        OrderCouponApplier.initializeAppliedCoupons(order);
+        emailService.sendOrderPlacedEmail(OrderEmailContextMapper.from(order));
+        return orderMapper.toResponse(order);
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +129,7 @@ public class OrderService {
         User user = userDetailsService.getUserByEmail(email);
         Order order = orderRepository.findByIdAndUserIdWithItems(orderId, user.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
+        OrderCouponApplier.initializeAppliedCoupons(order);
         return orderMapper.toResponse(order);
     }
 
@@ -139,6 +146,7 @@ public class OrderService {
     public AdminOrderDetailResponse getOrderById(UUID orderId) {
         Order order = orderRepository.findByIdForAdminDetails(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Order not found"));
+        OrderCouponApplier.initializeAppliedCoupons(order);
         return adminOrderMapper.toDetailResponse(order);
     }
 
@@ -160,6 +168,7 @@ public class OrderService {
 
         order.setOrderStatus(newStatus);
         Order saved = orderRepository.save(order);
+        OrderCouponApplier.initializeAppliedCoupons(saved);
         if (newStatus == OrderStatus.SHIPPED) {
             emailService.sendOrderShippedEmail(OrderEmailContextMapper.from(saved));
         } else if (newStatus == OrderStatus.DELIVERED) {

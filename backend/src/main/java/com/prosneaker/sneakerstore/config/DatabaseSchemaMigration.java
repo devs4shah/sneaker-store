@@ -22,6 +22,7 @@ public class DatabaseSchemaMigration {
     public void migrate() {
         migrateOrdersTable();
         migrateOrderItemsTable();
+        migrateOrderCouponsTable();
     }
 
     private void migrateOrdersTable() {
@@ -69,6 +70,28 @@ public class DatabaseSchemaMigration {
             log.info("Added orders.razorpay_payment_id column");
         }
 
+        if (!columnExists("orders", "coupon_code")) {
+            jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50)");
+            log.info("Added orders.coupon_code column");
+        }
+
+        if (!columnExists("orders", "discount_amount")) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE orders ADD COLUMN discount_amount NUMERIC(10, 2) NOT NULL DEFAULT 0");
+            log.info("Added orders.discount_amount column");
+        }
+
+        if (!columnExists("orders", "final_amount")) {
+            jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN final_amount NUMERIC(10, 2)");
+            jdbcTemplate.execute("""
+                    UPDATE orders
+                    SET final_amount = total_amount
+                    WHERE final_amount IS NULL
+                    """);
+            jdbcTemplate.execute("ALTER TABLE orders ALTER COLUMN final_amount SET NOT NULL");
+            log.info("Added orders.final_amount column");
+        }
+
         // Align old enum value to latest domain model.
         // Existing DB check constraint may still allow CONFIRMED but reject PROCESSING,
         // so temporarily drop/recreate it during migration.
@@ -111,6 +134,36 @@ public class DatabaseSchemaMigration {
         }
     }
 
+    private void migrateOrderCouponsTable() {
+        if (!tableExists("order_coupons")) {
+            jdbcTemplate.execute("""
+                    CREATE TABLE order_coupons (
+                        id UUID PRIMARY KEY,
+                        order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+                        coupon_code VARCHAR(50) NOT NULL,
+                        discount_amount NUMERIC(10, 2) NOT NULL,
+                        sort_order INTEGER NOT NULL,
+                        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+                    )
+                    """);
+            log.info("Created order_coupons table");
+        }
+
+        if (columnExists("orders", "coupon_code")) {
+            jdbcTemplate.execute("""
+                    INSERT INTO order_coupons (id, order_id, coupon_code, discount_amount, sort_order, created_at, updated_at)
+                    SELECT gen_random_uuid(), o.id, o.coupon_code, COALESCE(o.discount_amount, 0), 0, NOW(), NOW()
+                    FROM orders o
+                    WHERE o.coupon_code IS NOT NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM order_coupons oc WHERE oc.order_id = o.id
+                      )
+                    """);
+            log.info("Migrated legacy orders.coupon_code values into order_coupons");
+        }
+    }
+
     private void dropColumnIfExists(String table, String column) {
         if (columnExists(table, column)) {
             jdbcTemplate.execute("ALTER TABLE " + table + " DROP COLUMN " + column);
@@ -126,6 +179,16 @@ public class DatabaseSchemaMigration {
                   AND table_name = ?
                   AND column_name = ?
                 """, Integer.class, table, column);
+        return count != null && count > 0;
+    }
+
+    private boolean tableExists(String table) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_name = ?
+                """, Integer.class, table);
         return count != null && count > 0;
     }
 }

@@ -19,6 +19,9 @@ public class AdminOrderDetailResponse {
     private final CustomerInfo customer;
     private final List<ItemInfo> items;
     private final BigDecimal totalAmount;
+    private final List<CouponInfo> appliedCoupons;
+    private final BigDecimal discountAmount;
+    private final BigDecimal finalAmount;
     private final int totalQuantity;
     private final PaymentInfo payment;
     private final OrderStatus orderStatus;
@@ -46,6 +49,13 @@ public class AdminOrderDetailResponse {
         private final BigDecimal unitPrice;
         private final BigDecimal lineSubtotal;
         private final String imageUrl;
+    }
+
+    @Getter
+    @Builder
+    public static class CouponInfo {
+        private final String couponCode;
+        private final BigDecimal discountAmount;
     }
 
     @Getter

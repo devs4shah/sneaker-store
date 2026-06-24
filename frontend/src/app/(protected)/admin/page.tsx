@@ -28,6 +28,12 @@ export default function AdminPage() {
         >
           Manage inventory
         </Link>
+        <Link
+          href="/admin/coupons"
+          className="inline-flex rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          Manage coupons
+        </Link>
       </div>
     </section>
   );

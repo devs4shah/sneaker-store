@@ -1,6 +1,7 @@
 import { SneakerImage } from "@/components/products/SneakerImage";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
 import { formatDateTime, formatPrice } from "@/lib/format";
+import { getOrderDiscount, getOrderPayableTotal, hasOrderDiscount } from "@/lib/orderAmount";
 import type { Order } from "@/types/order";
 
 interface OrderCardProps {
@@ -8,6 +9,10 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
+  const amountPaid = getOrderPayableTotal(order);
+  const discount = getOrderDiscount(order);
+  const showDiscount = hasOrderDiscount(order);
+
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <div className="border-b border-gray-100 px-4 py-4 sm:px-6 dark:border-zinc-800">
@@ -30,9 +35,21 @@ export function OrderCard({ order }: OrderCardProps) {
           </div>
         </div>
 
-        <p className="mt-4 text-lg font-bold text-gray-900 dark:text-zinc-100">
-          Total: {formatPrice(order.totalAmount)}
-        </p>
+        <div className="mt-4 space-y-1">
+          {showDiscount ? (
+            <p className="text-sm text-gray-500 line-through dark:text-zinc-400">
+              {formatPrice(order.totalAmount)}
+            </p>
+          ) : null}
+          <p className="text-lg font-bold text-gray-900 dark:text-zinc-100">
+            Paid: {formatPrice(amountPaid)}
+          </p>
+          {showDiscount ? (
+            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              Saved {formatPrice(discount)}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div className="px-4 py-4 sm:px-6">

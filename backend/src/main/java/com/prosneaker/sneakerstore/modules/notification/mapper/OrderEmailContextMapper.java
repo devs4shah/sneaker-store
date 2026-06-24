@@ -18,7 +18,7 @@ public final class OrderEmailContextMapper {
                 user.getEmail(),
                 order.getId().toString(),
                 order.getOrderNumber(),
-                order.getTotalAmount(),
+                order.getFinalAmount(),
                 order.getOrderStatus().name(),
                 order.getPaymentStatus().name()
         );

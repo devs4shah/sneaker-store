@@ -43,12 +43,20 @@ export interface AdminOrderPaymentInfo {
   razorpayPaymentId: string | null;
 }
 
+export interface AdminOrderCoupon {
+  couponCode: string;
+  discountAmount: number;
+}
+
 export interface AdminOrderDetail {
   orderId: string;
   orderNumber: string;
   customer: AdminOrderCustomerInfo;
   items: AdminOrderItemInfo[];
   totalAmount: number;
+  appliedCoupons?: AdminOrderCoupon[];
+  discountAmount?: number;
+  finalAmount?: number;
   totalQuantity: number;
   payment: AdminOrderPaymentInfo;
   orderStatus: AdminOrderStatus;
