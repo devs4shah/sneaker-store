@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WishlistToggleButton } from "@/components/products/WishlistToggleButton";
 import { formatPrice } from "@/lib/format";
 import type { Sneaker } from "@/types/product";
 import { SneakerImage } from "@/components/products/SneakerImage";
@@ -22,6 +23,9 @@ export function SneakerCard({ sneaker }: SneakerCardProps) {
           alt={sneaker.name}
           className="object-cover transition duration-300 group-hover:scale-105"
         />
+        <div className="absolute right-3 top-3 z-10">
+          <WishlistToggleButton sneakerId={sneaker.id} size="sm" />
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">

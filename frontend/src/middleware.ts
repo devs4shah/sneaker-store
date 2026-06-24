@@ -8,7 +8,7 @@ import { ADMIN_ROLE, AUTH_ROLE_COOKIE, AUTH_TOKEN_COOKIE } from "@/lib/constants
 
 const AUTH_ROUTES = ["/login", "/register"];
 
-const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/cart", "/checkout", "/orders"];
+const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/cart", "/checkout", "/orders", "/wishlist"];
 
 
 
@@ -45,7 +45,7 @@ export function middleware(request: NextRequest) {
 
 
   if (isAuthRoute && token) {
-    const destination = role === ADMIN_ROLE ? "/admin" : "/sneakers";
+    const destination = role === ADMIN_ROLE ? "/admin" : "/";
     return NextResponse.redirect(new URL(destination, request.url));
   }
 
@@ -84,6 +84,8 @@ export const config = {
     "/checkout/:path*",
 
     "/orders",
+
+    "/wishlist",
 
   ],
 

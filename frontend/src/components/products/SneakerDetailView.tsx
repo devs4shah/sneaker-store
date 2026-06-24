@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ImageGallery } from "@/components/products/ImageGallery";
 import { ProductReviewsSection } from "@/components/products/ProductReviewsSection";
+import { WishlistToggleButton } from "@/components/products/WishlistToggleButton";
 import { StockBadge } from "@/components/products/StockBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Alert } from "@/components/ui/Alert";
@@ -126,6 +127,9 @@ export function SneakerDetailView({ sneakerId }: SneakerDetailViewProps) {
               {formatPrice(sneaker.price)}
             </p>
             <StockBadge stockQuantity={sneaker.stockQuantity} />
+            {!isAdmin ? (
+              <WishlistToggleButton sneakerId={sneaker.id} showLabel size="md" />
+            ) : null}
           </div>
 
           <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">

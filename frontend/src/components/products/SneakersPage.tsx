@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   ProductFilters,
   type ProductFilterValues,
@@ -62,7 +62,9 @@ function toApiFilters(filters: ProductFilterValues, page: number) {
 
 export function SneakersPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const shopPath = pathname === "/sneakers" ? "/sneakers" : "/";
 
   const [filters, setFilters] = useState<ProductFilterValues>(() =>
     filtersFromParams(searchParams),
@@ -83,36 +85,42 @@ export function SneakersPage() {
   const syncUrl = useCallback(
     (nextFilters: ProductFilterValues, nextPage: number) => {
       const params = paramsFromFilters(nextFilters, nextPage);
-      router.replace(params.toString() ? `/sneakers?${params}` : "/sneakers");
+      router.replace(params.toString() ? `${shopPath}?${params}` : shopPath);
     },
-    [router],
+    [router, shopPath],
   );
 
-  const fetchSneakers = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false;
     setIsLoading(true);
     setError(null);
 
-    try {
-      const data = await productService.getSneakers(toApiFilters(queryFilters, page));
-      setResult(data);
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Failed to load sneakers"));
-      setResult(null);
-    } finally {
-      setIsLoading(false);
-    }
+    void Promise.all([
+      productService.getCategories(),
+      productService.getSneakers(toApiFilters(queryFilters, page)),
+    ])
+      .then(([categoryData, sneakerData]) => {
+        if (cancelled) return;
+        setCategories(categoryData);
+        setResult(sneakerData);
+        setError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setCategories([]);
+        setError(getApiErrorMessage(err, "Failed to load sneakers"));
+        setResult(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [queryFilters, page]);
-
-  useEffect(() => {
-    productService
-      .getCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
-  }, []);
-
-  useEffect(() => {
-    void fetchSneakers();
-  }, [fetchSneakers]);
 
   const applyFilters = () => {
     setPage(0);
@@ -122,7 +130,7 @@ export function SneakersPage() {
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
     setPage(0);
-    router.replace("/sneakers");
+    router.replace(shopPath);
   };
 
   const goToPage = (nextPage: number) => {
@@ -153,7 +161,26 @@ export function SneakersPage() {
       {isLoading ? (
         <ProductGridSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={() => void fetchSneakers()} />
+        <ErrorState
+          message={error}
+          onRetry={() => {
+            setIsLoading(true);
+            void Promise.all([
+              productService.getCategories(),
+              productService.getSneakers(toApiFilters(queryFilters, page)),
+            ])
+              .then(([categoryData, sneakerData]) => {
+                setCategories(categoryData);
+                setResult(sneakerData);
+                setError(null);
+              })
+              .catch((err) => {
+                setError(getApiErrorMessage(err, "Failed to load sneakers"));
+                setResult(null);
+              })
+              .finally(() => setIsLoading(false));
+          }}
+        />
       ) : !result || result.content.length === 0 ? (
         <EmptyState
           title="No sneakers found"
