@@ -18,6 +18,7 @@ import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderItem;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.inventory.service.InventoryService;
 import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
 import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
@@ -48,6 +49,7 @@ public class OrderService {
     private final OrderStatusTransitionValidator statusTransitionValidator;
     private final AdminOrderMapper adminOrderMapper;
     private final EmailService emailService;
+    private final InventoryService inventoryService;
 
     @Transactional
     public OrderResponse checkout(String email, CreateOrderRequest request) {
@@ -55,6 +57,8 @@ public class OrderService {
         if (cart.getItems().isEmpty()) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "Cannot checkout with an empty cart");
         }
+
+        inventoryService.validateCartStock(cart);
 
         User user = userDetailsService.getUserByEmail(email);
         Order order = Order.builder()
@@ -77,13 +81,6 @@ public class OrderService {
             Sneaker sneaker = sneakerRepository.findByIdForUpdate(cartItem.getSneaker().getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
 
-            if (sneaker.getStockQuantity() < cartItem.getQuantity()) {
-                throw new BusinessException(
-                        ErrorCode.BAD_REQUEST,
-                        "Insufficient stock for " + sneaker.getName()
-                                + ". Available: " + sneaker.getStockQuantity());
-            }
-
             String imageUrl = resolvePrimaryImageUrl(sneaker);
 
             OrderItem orderItem = OrderItem.builder()
@@ -101,8 +98,6 @@ public class OrderService {
                     .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(lineTotal);
             totalQuantity += cartItem.getQuantity();
-
-            sneaker.setStockQuantity(sneaker.getStockQuantity() - cartItem.getQuantity());
         }
 
         order.setTotalAmount(totalAmount);
@@ -157,7 +152,9 @@ public class OrderService {
         statusTransitionValidator.validateTransition(currentStatus, newStatus);
 
         if (newStatus == OrderStatus.CANCELLED && currentStatus != OrderStatus.CANCELLED) {
-            restoreStock(order);
+            if (order.getPaymentStatus() == PaymentStatus.PAID) {
+                inventoryService.restoreOrderStock(order);
+            }
             order.setPaymentStatus(PaymentStatus.REFUNDED);
         }
 
@@ -169,14 +166,6 @@ public class OrderService {
             emailService.sendOrderDeliveredEmail(OrderEmailContextMapper.from(saved));
         }
         return orderMapper.toResponse(saved);
-    }
-
-    private void restoreStock(Order order) {
-        for (OrderItem item : order.getItems()) {
-            Sneaker sneaker = sneakerRepository.findByIdForUpdate(item.getSneaker().getId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "Sneaker not found"));
-            sneaker.setStockQuantity(sneaker.getStockQuantity() + item.getQuantity());
-        }
     }
 
     private String resolvePrimaryImageUrl(Sneaker sneaker) {

@@ -102,6 +102,7 @@ export function SneakerDetailView({ sneakerId }: SneakerDetailViewProps) {
   }
 
   const outOfStock = sneaker.stockQuantity <= 0;
+  const lowStock = sneaker.stockQuantity > 0 && sneaker.stockQuantity <= 5;
   const maxQuantity = Math.max(1, sneaker.stockQuantity);
 
   return (
@@ -131,6 +132,21 @@ export function SneakerDetailView({ sneakerId }: SneakerDetailViewProps) {
               <WishlistToggleButton sneakerId={sneaker.id} showLabel size="md" />
             ) : null}
           </div>
+
+          {lowStock ? (
+            <div className="mt-4">
+              <Alert
+                variant="warning"
+                message={`Hurry — only ${sneaker.stockQuantity} pair${sneaker.stockQuantity === 1 ? "" : "s"} left in stock.`}
+              />
+            </div>
+          ) : null}
+
+          {outOfStock ? (
+            <div className="mt-4">
+              <Alert variant="error" message="This sneaker is currently out of stock." />
+            </div>
+          ) : null}
 
           <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
             <div>

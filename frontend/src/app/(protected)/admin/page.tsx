@@ -15,12 +15,18 @@ export default function AdminPage() {
       <p className="mt-2 text-gray-600 dark:text-zinc-400">
         Hello {user?.firstName}, you have administrator access to manage the store.
       </p>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-3">
         <Link
           href="/admin/orders"
           className="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
         >
           Open orders dashboard
+        </Link>
+        <Link
+          href="/admin/inventory"
+          className="inline-flex rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          Manage inventory
         </Link>
       </div>
     </section>

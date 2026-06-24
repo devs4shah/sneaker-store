@@ -6,6 +6,7 @@ import com.prosneaker.sneakerstore.modules.orders.dto.OrderResponse;
 import com.prosneaker.sneakerstore.modules.orders.entity.Order;
 import com.prosneaker.sneakerstore.modules.orders.entity.OrderStatus;
 import com.prosneaker.sneakerstore.modules.orders.entity.PaymentStatus;
+import com.prosneaker.sneakerstore.modules.inventory.service.InventoryService;
 import com.prosneaker.sneakerstore.modules.notification.mapper.OrderEmailContextMapper;
 import com.prosneaker.sneakerstore.modules.notification.service.EmailService;
 import com.prosneaker.sneakerstore.modules.orders.mapper.OrderMapper;
@@ -30,6 +31,7 @@ public class PaymentService {
     private final UserDetailsServiceImpl userDetailsService;
     private final RazorpayGatewayService razorpayGatewayService;
     private final EmailService emailService;
+    private final InventoryService inventoryService;
 
     @Transactional
     public RazorpayOrderResponse createRazorpayOrder(String email, UUID orderId) {
@@ -42,6 +44,8 @@ public class PaymentService {
         if (order.getPaymentStatus() == PaymentStatus.REFUNDED) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "Order payment cannot be processed");
         }
+
+        inventoryService.validateOrderStock(order);
 
         RazorpayGatewayService.CreatedRazorpayOrder created = razorpayGatewayService.createOrder(
                 order.getOrderNumber(),
@@ -79,6 +83,9 @@ public class PaymentService {
                 request.getRazorpayOrderId(),
                 request.getRazorpayPaymentId(),
                 request.getRazorpaySignature());
+
+        inventoryService.validateOrderStock(order);
+        inventoryService.deductOrderStock(order);
 
         order.setRazorpayOrderId(request.getRazorpayOrderId());
         order.setRazorpayPaymentId(request.getRazorpayPaymentId());

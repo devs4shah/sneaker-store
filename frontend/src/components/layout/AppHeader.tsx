@@ -46,12 +46,20 @@ export function AppHeader() {
             </Link>
           ) : null}
           {isAdmin ? (
-            <Link
-              href="/admin/orders"
-              className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Admin Orders
-            </Link>
+            <>
+              <Link
+                href="/admin/orders"
+                className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                Admin Orders
+              </Link>
+              <Link
+                href="/admin/inventory"
+                className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                Inventory
+              </Link>
+            </>
           ) : null}
           <span className="hidden text-gray-500 dark:text-zinc-400 sm:inline">
             {user?.firstName} {user?.lastName}
