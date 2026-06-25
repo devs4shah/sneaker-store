@@ -65,6 +65,12 @@ export function AppHeader() {
               >
                 Coupons
               </Link>
+              <Link
+                href="/admin/analytics"
+                className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                Analytics
+              </Link>
             </>
           ) : null}
           <span className="hidden text-gray-500 dark:text-zinc-400 sm:inline">
