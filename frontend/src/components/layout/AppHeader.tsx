@@ -37,6 +37,12 @@ export function AppHeader() {
           >
             Dashboard
           </Link>
+          <Link
+            href="/dashboard/profile"
+            className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            Profile
+          </Link>
           {!isAdmin ? (
             <Link
               href="/orders"

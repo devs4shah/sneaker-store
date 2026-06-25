@@ -4,6 +4,7 @@ import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
 import com.prosneaker.sneakerstore.modules.common.exception.BusinessException;
 import com.prosneaker.sneakerstore.modules.common.exception.ErrorCode;
 import com.prosneaker.sneakerstore.modules.common.util.PageMapper;
+import com.prosneaker.sneakerstore.modules.users.dto.ChangePasswordRequest;
 import com.prosneaker.sneakerstore.modules.users.dto.UpdateProfileRequest;
 import com.prosneaker.sneakerstore.modules.users.dto.UserResponse;
 import com.prosneaker.sneakerstore.modules.users.entity.Role;
@@ -54,6 +55,22 @@ public class UserService {
         user.setFirstName(request.getFirstName().trim());
         user.setLastName(request.getLastName().trim());
         return userMapper.toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userDetailsService.getUserByEmail(email);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "Current password is incorrect");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "New password must be different from the current password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     public PageResponse<UserResponse> getAllUsers(Pageable pageable) {

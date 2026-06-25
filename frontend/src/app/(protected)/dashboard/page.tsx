@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 
 export default function DashboardPage() {
@@ -15,6 +16,20 @@ export default function DashboardPage() {
       <p className="mt-4 text-sm text-gray-500 dark:text-zinc-500">
         Role: <span className="font-mono text-gray-700 dark:text-zinc-300">{user?.role}</span>
       </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link
+          href="/dashboard/profile"
+          className="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
+        >
+          Edit profile
+        </Link>
+        <Link
+          href="/dashboard/addresses"
+          className="inline-flex rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          Manage addresses
+        </Link>
+      </div>
     </section>
   );
 }

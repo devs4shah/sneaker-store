@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/coupons/validate").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/coupons/available").hasRole("USER")
                         .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasRole("USER")
+                        .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

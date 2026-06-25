@@ -20,11 +20,13 @@ import {
 import { formatPrice } from "@/lib/format";
 import type { CheckoutFormValues } from "@/lib/validations/checkout";
 import { orderService } from "@/services/orderService";
+import { addressService } from "@/services/addressService";
 import { couponService } from "@/services/couponService";
 import { paymentService } from "@/services/paymentService";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import type { Order } from "@/types/order";
+import type { Address } from "@/types/address";
 import type { AppliedCouponsState } from "@/types/coupon";
 import type { PaymentPhase } from "@/types/payment";
 
@@ -42,6 +44,8 @@ export function CheckoutView() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [paymentPhase, setPaymentPhase] = useState<PaymentPhase>("idle");
   const [appliedCoupons, setAppliedCoupons] = useState<AppliedCouponsState | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(true);
 
   useEffect(() => {
     if (isAdmin) {
@@ -49,6 +53,17 @@ export function CheckoutView() {
       return;
     }
     void fetchCart();
+    void (async () => {
+      setAddressesLoading(true);
+      try {
+        const savedAddresses = await addressService.getAddresses();
+        setAddresses(savedAddresses);
+      } catch {
+        setAddresses([]);
+      } finally {
+        setAddressesLoading(false);
+      }
+    })();
   }, [fetchCart, isAdmin, router]);
 
   if (isAdmin) {
@@ -175,6 +190,8 @@ export function CheckoutView() {
               onSubmit={handleCheckout}
               serverError={serverError}
               isProcessing={isProcessing}
+              addresses={addresses}
+              addressesLoading={addressesLoading}
             />
           </section>
 

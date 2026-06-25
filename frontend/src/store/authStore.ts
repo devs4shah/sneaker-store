@@ -16,6 +16,7 @@ interface AuthState {
     refreshToken: string;
     tokenType: string;
   }) => void;
+  updateUser: (user: User) => void;
   logout: () => void;
   isAdmin: () => boolean;
 }
@@ -38,6 +39,10 @@ export const useAuthStore = create<AuthState>()(
           tokenType,
           isAuthenticated: true,
         });
+      },
+
+      updateUser: (user) => {
+        set({ user });
       },
 
       logout: () => {
