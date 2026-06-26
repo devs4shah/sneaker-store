@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Console appender (always on) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Local / default development: readable console logging -->
+    <springProfile name="local,default">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.prosneaker" level="DEBUG"/>
+    </springProfile>
+
+    <!-- Production: console + rolling file, quieter framework noise -->
+    <springProfile name="prod">
+        <property name="LOG_PATH" value="${LOG_FILE:-/var/log/prosneaker/backend.log}"/>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>14</maxHistory>
+                <totalSizeCap>500MB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="${LOG_LEVEL_ROOT:-WARN}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+        <logger name="com.prosneaker" level="${LOG_LEVEL_APP:-INFO}"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+</configuration>
