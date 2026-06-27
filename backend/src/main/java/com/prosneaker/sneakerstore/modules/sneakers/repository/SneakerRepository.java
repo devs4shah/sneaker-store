@@ -16,6 +16,8 @@ import java.util.UUID;
 
 public interface SneakerRepository extends JpaRepository<Sneaker, UUID>, JpaSpecificationExecutor<Sneaker> {
 
+    long countByCategory_Id(UUID categoryId);
+
     @Query("""
             SELECT DISTINCT s FROM Sneaker s
             LEFT JOIN FETCH s.category

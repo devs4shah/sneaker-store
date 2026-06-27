@@ -17,18 +17,12 @@ try {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  images: {
+    images: {
     remotePatterns: [
       {
         protocol: apiProtocol,
         hostname: apiHostname,
         port: apiPort,
-        pathname: "/**",
-      },
-      // Seed / demo external image hosts
-      {
-        protocol: "https",
-        hostname: "images.example.com",
         pathname: "/**",
       },
     ],
