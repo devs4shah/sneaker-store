@@ -8,6 +8,7 @@ export interface Category {
 export interface SneakerImage {
   id: string;
   imageUrl: string;
+  displayOrder?: number;
 }
 
 export interface Sneaker {

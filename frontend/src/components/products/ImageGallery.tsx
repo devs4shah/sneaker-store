@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SneakerImage as SneakerImageType } from "@/types/product";
 import { SneakerImage } from "@/components/products/SneakerImage";
+import { sortSneakerImages } from "@/lib/sneakerImages";
 
 interface ImageGalleryProps {
   images: SneakerImageType[];
@@ -11,7 +12,8 @@ interface ImageGalleryProps {
 
 export function ImageGallery({ images, productName }: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const slides = images.length > 0 ? images : [{ id: "placeholder", imageUrl: "" }];
+  const orderedImages = sortSneakerImages(images);
+  const slides = orderedImages.length > 0 ? orderedImages : [{ id: "placeholder", imageUrl: "" }];
 
   return (
     <div className="space-y-4">

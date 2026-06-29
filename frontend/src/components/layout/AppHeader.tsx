@@ -107,6 +107,12 @@ export function AppHeader() {
                     Inventory
                   </Link>
                   <Link
+                    href="/admin/products"
+                    className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  >
+                    Products
+                  </Link>
+                  <Link
                     href="/admin/coupons"
                     className="text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >

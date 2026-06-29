@@ -10,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import lombok.AllArgsConstructor;
@@ -62,6 +63,7 @@ public class Sneaker extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "sneaker", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
     @BatchSize(size = 20)
     @Builder.Default
     private List<SneakerImage> images = new ArrayList<>();

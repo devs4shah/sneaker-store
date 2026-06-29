@@ -9,6 +9,7 @@ import { WishlistToggleButton } from "@/components/products/WishlistToggleButton
 import { StockBadge } from "@/components/products/StockBadge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Alert } from "@/components/ui/Alert";
+import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { getApiErrorMessage } from "@/lib/apiClient";
 import { formatPrice } from "@/lib/format";
 import { productService } from "@/services/productService";
@@ -175,9 +176,16 @@ export function SneakerDetailView({ sneakerId }: SneakerDetailViewProps) {
 
           <div className="mt-6">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Description</h2>
-            <p className="mt-2 leading-relaxed text-gray-600 dark:text-zinc-400">
-              {sneaker.description || "No description available for this sneaker."}
-            </p>
+            {sneaker.description ? (
+              <LinkifiedText
+                text={sneaker.description}
+                className="mt-2 whitespace-pre-wrap leading-relaxed text-gray-600 dark:text-zinc-400"
+              />
+            ) : (
+              <p className="mt-2 leading-relaxed text-gray-600 dark:text-zinc-400">
+                No description available for this sneaker.
+              </p>
+            )}
           </div>
 
           <div className="mt-8 space-y-4 border-t border-gray-200 pt-8 dark:border-zinc-800">

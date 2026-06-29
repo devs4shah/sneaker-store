@@ -4,6 +4,7 @@ import com.prosneaker.sneakerstore.modules.common.dto.ApiResponse;
 import com.prosneaker.sneakerstore.modules.common.dto.PageResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.CreateSneakerRequest;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.ImageUploadResponse;
+import com.prosneaker.sneakerstore.modules.sneakers.dto.ReorderSneakerImagesRequest;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.SneakerResponse;
 import com.prosneaker.sneakerstore.modules.sneakers.dto.UpdateSneakerRequest;
 import com.prosneaker.sneakerstore.modules.sneakers.service.SneakerImageService;
@@ -86,5 +87,12 @@ public class SneakerController {
             @PathVariable UUID sneakerId,
             @PathVariable UUID imageId) {
         return ApiResponse.success("Image deleted", sneakerImageService.deleteImage(sneakerId, imageId));
+    }
+
+    @PutMapping("/{sneakerId}/images/order")
+    public ApiResponse<SneakerResponse> reorderImages(
+            @PathVariable UUID sneakerId,
+            @Valid @RequestBody ReorderSneakerImagesRequest request) {
+        return ApiResponse.success("Image order updated", sneakerImageService.reorderImages(sneakerId, request));
     }
 }

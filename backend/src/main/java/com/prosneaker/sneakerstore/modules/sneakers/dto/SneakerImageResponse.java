@@ -11,4 +11,5 @@ public class SneakerImageResponse {
 
     private UUID id;
     private String imageUrl;
+    private int displayOrder;
 }

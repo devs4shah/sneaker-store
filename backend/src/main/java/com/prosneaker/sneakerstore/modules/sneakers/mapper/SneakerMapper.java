@@ -8,6 +8,8 @@ import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.SneakerImage;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
+
 @Component
 public class SneakerMapper {
 
@@ -23,7 +25,10 @@ public class SneakerMapper {
                 .color(sneaker.getColor())
                 .size(sneaker.getSize())
                 .category(toCategoryResponse(sneaker.getCategory()))
-                .images(sneaker.getImages().stream().map(this::toImageResponse).toList())
+                .images(sneaker.getImages().stream()
+                        .sorted(Comparator.comparingInt(SneakerImage::getDisplayOrder))
+                        .map(this::toImageResponse)
+                        .toList())
                 .createdAt(sneaker.getCreatedAt())
                 .updatedAt(sneaker.getUpdatedAt())
                 .build();
@@ -40,6 +45,7 @@ public class SneakerMapper {
         return SneakerImageResponse.builder()
                 .id(image.getId())
                 .imageUrl(image.getImageUrl())
+                .displayOrder(image.getDisplayOrder())
                 .build();
     }
 }

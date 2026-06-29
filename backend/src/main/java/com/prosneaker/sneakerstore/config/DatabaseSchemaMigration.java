@@ -23,6 +23,7 @@ public class DatabaseSchemaMigration {
         migrateOrdersTable();
         migrateOrderItemsTable();
         migrateOrderCouponsTable();
+        migrateSneakerImagesTable();
     }
 
     private void migrateOrdersTable() {
@@ -162,6 +163,34 @@ public class DatabaseSchemaMigration {
                     """);
             log.info("Migrated legacy orders.coupon_code values into order_coupons");
         }
+    }
+
+    private void migrateSneakerImagesTable() {
+        if (!columnExists("sneaker_images", "display_order")) {
+            jdbcTemplate.execute(
+                    "ALTER TABLE sneaker_images ADD COLUMN display_order INTEGER NOT NULL DEFAULT 0");
+            log.info("Added sneaker_images.display_order column");
+        }
+
+        jdbcTemplate.execute("""
+                WITH ranked AS (
+                    SELECT id,
+                           ROW_NUMBER() OVER (PARTITION BY sneaker_id ORDER BY created_at, id) - 1 AS row_num
+                    FROM sneaker_images
+                )
+                UPDATE sneaker_images si
+                SET display_order = ranked.row_num
+                FROM ranked
+                WHERE si.id = ranked.id
+                  AND EXISTS (
+                      SELECT 1
+                      FROM sneaker_images other
+                      WHERE other.sneaker_id = si.sneaker_id
+                        AND other.id <> si.id
+                  )
+                  AND si.display_order <> ranked.row_num
+                """);
+        log.info("Ensured sneaker_images.display_order matches legacy upload order");
     }
 
     private void dropColumnIfExists(String table, String column) {

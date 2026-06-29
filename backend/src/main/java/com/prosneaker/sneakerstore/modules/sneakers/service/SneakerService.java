@@ -146,11 +146,13 @@ public class SneakerService {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return;
         }
+        int order = 0;
         for (String url : imageUrls) {
             if (url != null && !url.isBlank()) {
                 SneakerImage image = SneakerImage.builder()
                         .sneaker(sneaker)
                         .imageUrl(url.trim())
+                        .displayOrder(order++)
                         .build();
                 sneaker.getImages().add(image);
             }

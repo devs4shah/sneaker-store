@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { WishlistToggleButton } from "@/components/products/WishlistToggleButton";
+import { getPrimarySneakerImage } from "@/lib/sneakerImages";
 import { formatPrice } from "@/lib/format";
 import type { Sneaker } from "@/types/product";
 import { SneakerImage } from "@/components/products/SneakerImage";
@@ -10,7 +11,7 @@ interface SneakerCardProps {
 }
 
 export function SneakerCard({ sneaker }: SneakerCardProps) {
-  const primaryImage = sneaker.images[0]?.imageUrl;
+  const primaryImage = getPrimarySneakerImage(sneaker.images)?.imageUrl;
 
   return (
     <Link

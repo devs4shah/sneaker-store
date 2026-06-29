@@ -28,4 +28,8 @@ public class SneakerImage extends BaseEntity {
 
     @Column(nullable = false, length = 500)
     private String imageUrl;
+
+    @Column(name = "display_order", nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private int displayOrder = 0;
 }
