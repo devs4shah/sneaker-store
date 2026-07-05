@@ -1,8 +1,6 @@
 package com.prosneaker.sneakerstore.config;
 
 import com.prosneaker.sneakerstore.config.storage.ImageStorageProperties;
-import com.prosneaker.sneakerstore.modules.coupons.entity.Coupon;
-import com.prosneaker.sneakerstore.modules.coupons.entity.CouponType;
 import com.prosneaker.sneakerstore.modules.coupons.repository.CouponRepository;
 import com.prosneaker.sneakerstore.modules.sneakers.entity.Sneaker;
 import com.prosneaker.sneakerstore.modules.sneakers.repository.CategoryRepository;
@@ -20,11 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +32,9 @@ public class DataInitializer implements CommandLineRunner {
 
     private static final String ADMIN_EMAIL = "admin@prosneaker.com";
     private static final String ADMIN_PASSWORD = "Admin@12345";
-    private static final String CLEANUP_MARKER = ".seeded_sneakers_removed_v1";
+    private static final String CLEANUP_MARKER = ".dummy_data_removed_v2";
     private static final String LEGACY_SEED_MARKER = ".dummy_sneakers_seeded_once";
+    private static final String LEGACY_SNEAKER_CLEANUP_MARKER = ".seeded_sneakers_removed_v1";
 
     private static final Set<String> SEEDED_SNEAKER_NAMES = Set.of(
             "Air Max Pulse",
@@ -63,6 +59,7 @@ public class DataInitializer implements CommandLineRunner {
     );
 
     private static final Set<String> SEEDED_CATEGORY_NAMES = Set.of("Running", "Lifestyle");
+    private static final Set<String> SEEDED_COUPON_CODES = Set.of("WELCOME10", "FLAT50");
 
     private final UserRepository userRepository;
     private final UserService userService;
@@ -76,17 +73,18 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        purgeSeededSneakersOnce();
+        purgeLegacyDummyDataOnce();
+        ensureDefaultAdminExists();
+    }
 
+    private void ensureDefaultAdminExists() {
         if (!userRepository.existsByEmail(ADMIN_EMAIL)) {
             userService.createUser(ADMIN_EMAIL, ADMIN_PASSWORD, "System", "Administrator", Role.ROLE_ADMIN);
             log.info("Default admin user created: {}", ADMIN_EMAIL);
         }
-
-        seedCouponsIfMissing();
     }
 
-    private void purgeSeededSneakersOnce() {
+    private void purgeLegacyDummyDataOnce() {
         Path uploadDir = Path.of(imageStorageProperties.getUploadDir()).toAbsolutePath().normalize();
         Path marker = uploadDir.resolve(CLEANUP_MARKER);
         if (Files.exists(marker)) {
@@ -99,6 +97,20 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Could not create upload directory for cleanup marker: {}", e.getMessage());
         }
 
+        purgeLegacyDummySneakers();
+        purgeLegacySampleCoupons();
+        removeEmptySeededCategories();
+
+        try {
+            Files.deleteIfExists(uploadDir.resolve(LEGACY_SEED_MARKER));
+            Files.deleteIfExists(uploadDir.resolve(LEGACY_SNEAKER_CLEANUP_MARKER));
+            Files.createFile(marker);
+        } catch (IOException e) {
+            log.warn("Failed writing cleanup marker {}: {}", marker, e.getMessage());
+        }
+    }
+
+    private void purgeLegacyDummySneakers() {
         List<Sneaker> seededSneakers = sneakerRepository.findAll().stream()
                 .filter(this::isSeededSneaker)
                 .toList();
@@ -108,7 +120,7 @@ public class DataInitializer implements CommandLineRunner {
 
         for (Sneaker sneaker : seededSneakers) {
             if (isReferencedByOrders(sneaker.getId())) {
-                log.warn("Skipping seeded sneaker '{}' — referenced by existing orders", sneaker.getName());
+                log.warn("Skipping legacy dummy sneaker '{}' — referenced by existing orders", sneaker.getName());
                 skipped++;
                 continue;
             }
@@ -123,16 +135,34 @@ public class DataInitializer implements CommandLineRunner {
             removed++;
         }
 
-        removeEmptySeededCategories();
+        if (removed > 0 || skipped > 0) {
+            log.info("Legacy dummy sneaker cleanup: removed {}, skipped (order history) {}", removed, skipped);
+        }
+    }
 
-        try {
-            Files.deleteIfExists(uploadDir.resolve(LEGACY_SEED_MARKER));
-            Files.createFile(marker);
-        } catch (IOException e) {
-            log.warn("Failed writing cleanup marker {}: {}", marker, e.getMessage());
+    private void purgeLegacySampleCoupons() {
+        int removed = 0;
+
+        for (String code : SEEDED_COUPON_CODES) {
+            var couponOptional = couponRepository.findByCodeIgnoreCase(code);
+            if (couponOptional.isEmpty()) {
+                continue;
+            }
+
+            var coupon = couponOptional.get();
+            if (coupon.getUsedCount() > 0) {
+                log.warn("Skipping legacy sample coupon '{}' — already used", coupon.getCode());
+                continue;
+            }
+
+            couponRepository.delete(coupon);
+            removed++;
+            log.info("Removed legacy sample coupon: {}", coupon.getCode());
         }
 
-        log.info("Seeded sneaker cleanup complete: removed {}, skipped (order history) {}", removed, skipped);
+        if (removed > 0) {
+            log.info("Legacy sample coupon cleanup: removed {}", removed);
+        }
     }
 
     private boolean isSeededSneaker(Sneaker sneaker) {
@@ -161,42 +191,9 @@ public class DataInitializer implements CommandLineRunner {
             categoryRepository.findByNameIgnoreCase(categoryName).ifPresent(category -> {
                 if (sneakerRepository.countByCategory_Id(category.getId()) == 0) {
                     categoryRepository.delete(category);
-                    log.info("Removed empty seeded category: {}", categoryName);
+                    log.info("Removed empty legacy category: {}", categoryName);
                 }
             });
         }
-    }
-
-    private void seedCouponsIfMissing() {
-        if (couponRepository.existsByCodeIgnoreCase("WELCOME10")) {
-            return;
-        }
-
-        Instant now = Instant.now();
-
-        couponRepository.save(Coupon.builder()
-                .code("WELCOME10")
-                .couponType(CouponType.PERCENTAGE)
-                .discountValue(new BigDecimal("10.00"))
-                .minimumOrderAmount(BigDecimal.ZERO)
-                .maximumDiscount(new BigDecimal("500.00"))
-                .usageLimit(100)
-                .validFrom(now.minus(1, ChronoUnit.DAYS))
-                .validUntil(now.plus(365, ChronoUnit.DAYS))
-                .active(true)
-                .build());
-
-        couponRepository.save(Coupon.builder()
-                .code("FLAT50")
-                .couponType(CouponType.FIXED)
-                .discountValue(new BigDecimal("50.00"))
-                .minimumOrderAmount(new BigDecimal("200.00"))
-                .usageLimit(null)
-                .validFrom(now.minus(1, ChronoUnit.DAYS))
-                .validUntil(now.plus(365, ChronoUnit.DAYS))
-                .active(true)
-                .build());
-
-        log.info("Sample coupons seeded (WELCOME10, FLAT50)");
     }
 }

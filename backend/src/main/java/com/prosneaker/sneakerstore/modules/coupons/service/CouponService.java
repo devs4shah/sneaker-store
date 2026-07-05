@@ -367,6 +367,9 @@ public class CouponService {
         if (amount == null) {
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "Amount cannot be negative");
+        }
         return amount.setScale(2, RoundingMode.HALF_UP);
     }
 
